@@ -3,10 +3,10 @@ package com.tablabs.hrms.service;
 import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.Message;
-import com.tablabs.hrms.models.responseDTO.EmployeeResponse;
-import com.tablabs.hrms.models.responseDTO.GetEmployeesWithDepartmentResponse;
-import com.tablabs.hrms.models.responseDTO.GetMessageAllEmployeeWithDepartmentResponse;
-import com.tablabs.hrms.models.responseDTO.GetMessageEmployeeWithDepartment;
+import com.tablabs.hrms.models.response.EmployeeResponse;
+import com.tablabs.hrms.models.response.GetEmployeesWithDepartmentResponse;
+import com.tablabs.hrms.models.response.GetMessageAllEmployeeWithDepartmentResponse;
+import com.tablabs.hrms.models.response.GetMessageEmployeeWithDepartment;
 import com.tablabs.hrms.repository.DepartmentRepositroy;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import org.slf4j.Logger;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -44,11 +43,11 @@ public class EmployeesServiceImpl {
     @Autowired
     private DepartmentImp departmentImp;
 
-    public ResponseEntity<?> createEmployee(Employees employees, MultipartFile multipartFile) {
+    public ResponseEntity<?> createEmployee(Employees employees) {
         log.info("Request for create employee : {}",employees.getId());
         if(employees!=null) {
             if(departmentRepositroy.existsById(employees.getDepartmentId())) {
-                employees.setImage(multipartFile.getOriginalFilename());
+                employees.setImage("default.png");
                 Employees result = employeesRepository.save(employees);
                 EmployeeResponse employeeResponse = new EmployeeResponse();
                 employeeResponse.setMessage("Successfully retrieve data");

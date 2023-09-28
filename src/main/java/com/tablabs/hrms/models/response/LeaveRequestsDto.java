@@ -1,4 +1,4 @@
-package com.tablabs.hrms.models.responseDTO;
+package com.tablabs.hrms.models.response;
 
 import java.time.LocalDate;
 

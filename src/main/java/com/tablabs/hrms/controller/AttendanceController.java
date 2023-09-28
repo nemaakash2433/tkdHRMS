@@ -2,8 +2,8 @@ package com.tablabs.hrms.controller;
 
 
 import com.tablabs.hrms.entity.Attendance;
-import com.tablabs.hrms.models.responseDTO.AttendanceAlongEmployeeDto;
-import com.tablabs.hrms.models.responseDTO.AttendanceDto;
+import com.tablabs.hrms.models.response.AttendanceAlongEmployeeDto;
+import com.tablabs.hrms.models.response.AttendanceDto;
 import com.tablabs.hrms.repository.AttendanceRepository;
 
 import com.tablabs.hrms.service.AttendanceServiceImpl;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URISyntaxException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 

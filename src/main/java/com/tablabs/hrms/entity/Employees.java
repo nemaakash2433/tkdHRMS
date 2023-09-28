@@ -46,6 +46,8 @@ public class Employees {
     @Column(name = "contact")
     private String contact;
 
+    private String location;
+
 	@Column(name = "department_Id")
     @NotNull(message = "select id")
 	private Long departmentId;

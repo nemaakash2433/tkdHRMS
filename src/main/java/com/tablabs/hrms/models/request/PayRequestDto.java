@@ -1,6 +1,4 @@
-package com.tablabs.hrms.models.requestDTO;
-
-import javax.persistence.Column;
+package com.tablabs.hrms.models.request;
 
 import com.tablabs.hrms.enums.PayRequestStatus;
 

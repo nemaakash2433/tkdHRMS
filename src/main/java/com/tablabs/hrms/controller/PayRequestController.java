@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.tablabs.hrms.errors.EmployeeDoesNotExistException;
 import com.tablabs.hrms.models.Message;
@@ -26,7 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.entity.PayRequest;
-import com.tablabs.hrms.models.requestDTO.PayRequestDto;
+import com.tablabs.hrms.models.request.PayRequestDto;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.repository.PayRequestRepository;
 import com.tablabs.hrms.util.JsonObjectFormat;

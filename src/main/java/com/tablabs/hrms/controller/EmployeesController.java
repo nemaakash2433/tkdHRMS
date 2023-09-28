@@ -4,6 +4,7 @@ package com.tablabs.hrms.controller;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.service.EmployeesServiceImpl;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +34,11 @@ public class EmployeesController {
     private EmployeesRepository employeesRepository;
 
 
-    @PostMapping("/createEmployees")
-    public ResponseEntity<?> createEmployees(@Valid @RequestPart(name = "empDetails") Employees employees, @RequestParam(name="image",defaultValue = "default.png",required = false)MultipartFile multipartFile) {
+    @PostMapping("/createEmployees")//changes
+    public ResponseEntity<?> createEmployees(@RequestBody Employees employees) {
         try {
             log.info("REST request to save Employees : {}", employees);
-            return employeesService.createEmployee(employees,multipartFile);
+            return employeesService.createEmployee(employees);
         }catch (Exception e){
             return ResponseEntity.ok(e.getMessage());
         }
@@ -48,6 +49,7 @@ public class EmployeesController {
         log.debug("REST request to update Employees : {}", employees);
         return employeesService.updateEmployee(employees,multipartFile);
     }
+
 
     @PostMapping("/getAllEmployees")
     public List<?> getAllEmployees(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page) {

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.tablabs.hrms.models.responseDTO.LeaveRequestDto;
-import com.tablabs.hrms.models.responseDTO.LeaveRequestsDto;
+import com.tablabs.hrms.models.response.LeaveRequestDto;
+import com.tablabs.hrms.models.response.LeaveRequestsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

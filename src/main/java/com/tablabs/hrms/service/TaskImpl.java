@@ -2,7 +2,7 @@ package com.tablabs.hrms.service;
 
 import com.tablabs.hrms.entity.Tasks;
 import com.tablabs.hrms.enums.TasksStatsType;
-import com.tablabs.hrms.models.responseDTO.TasksResponse;
+import com.tablabs.hrms.models.response.TasksResponse;
 import com.tablabs.hrms.repository.TasksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

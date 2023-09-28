@@ -1,6 +1,7 @@
 package com.tablabs.hrms.controller;
 
 import com.tablabs.hrms.entity.Department;
+import com.tablabs.hrms.models.Message;
 import com.tablabs.hrms.service.DepartmentImp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,11 @@ public class DepartmentController {
     }
 
     @GetMapping("/getAllDepartment")
-    public ResponseEntity<?> getAllDepartment(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page){
-        return departmentImp.getAllDepartment(page);
+    public ResponseEntity<?> getAllDepartment(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
+                                              @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
+                                              @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+                                              @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir){
+        return departmentImp.getAllDepartment(page,size,sortBy,sortDir);
     }
     @PutMapping("/updateDepartment")
     public ResponseEntity<?> updateDepartment(@RequestBody Department department,@RequestParam(name = "departmentId") Long departmentId){
@@ -59,8 +63,15 @@ public class DepartmentController {
     }
 
     @GetMapping("/getAllDepartmentWithEmployeeDetails")
-    public ResponseEntity<?> getAllDepartmentWithEmployeeDetails(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page){
-        return departmentImp.testapi();
+    public ResponseEntity<?> getAllDepartmentWithEmployeeDetails(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
+                                                                 @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
+                                                                 @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+                                                                 @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir){
+        try {
+            return departmentImp.getAllDepartmentWithEmployeeDetails(page, size, sortBy, sortDir);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"something went error : "+e.getMessage()));
+        }
     }
 
 }

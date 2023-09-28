@@ -3,8 +3,10 @@ package com.tablabs.hrms.service;
 import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.Message;
-import com.tablabs.hrms.models.responseDTO.GetAllDepartmentWithEmployeeDetails;
-import com.tablabs.hrms.models.responseDTO.GetEmployeesByDepartmentId;
+import com.tablabs.hrms.models.response.DepartmentWithPageResponse;
+import com.tablabs.hrms.models.response.GetAllDepartmentWithEmployeeDetails;
+import com.tablabs.hrms.models.response.GetDepartmentWithPageResponse;
+import com.tablabs.hrms.models.response.GetEmployeesByDepartmentId;
 import com.tablabs.hrms.repository.DepartmentRepositroy;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import org.slf4j.Logger;
@@ -18,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,10 +51,21 @@ public class DepartmentImp {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<?> getAllDepartment(Integer page) {
-        Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page, 5));
+    public ResponseEntity<?> getAllDepartment(Integer page,Integer size,String sortBy, String sortDir) {
+        Sort sort = (sortDir.equalsIgnoreCase("asc")) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page, size,sort));
+
         List<Department> content = getDepartmentRepAll.getContent();
-        return ResponseEntity.ok(content);
+        GetDepartmentWithPageResponse departmentWithPageResponse=new GetDepartmentWithPageResponse();
+        departmentWithPageResponse.setDepartment(content);
+        departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
+        departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
+        departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());
+        departmentWithPageResponse.setLastPage(getDepartmentRepAll.isLast());
+        departmentWithPageResponse.setTotalPages(getDepartmentRepAll.getTotalPages());
+
+
+        return ResponseEntity.ok(departmentWithPageResponse);
     }
 
     public ResponseEntity<?> deleteDepartmentById(Long departmentId) {
@@ -93,22 +105,31 @@ public class DepartmentImp {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false, "Please give valid id!!"));
     }
 
-    @Transactional(readOnly = true)
-    public ResponseEntity<?> getAllDepartmentWithEmployeeDetails(Integer page) {
-        Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page, 5));
-        List<GetAllDepartmentWithEmployeeDetails> collect = getDepartmentRepAll.stream().map(department -> {
-            Long id = department.getId();
-            String departmentName = department.getName();
-            List<Employees> employees = employeesRepository.findByDepartmentId(id);
-            GetAllDepartmentWithEmployeeDetails getAllDepartmentWithEmployeeDetails = new GetAllDepartmentWithEmployeeDetails(departmentName, employees.size(), employees);
-            return getAllDepartmentWithEmployeeDetails;
-        }).collect(Collectors.toList());
-        return ResponseEntity.ok(collect);
-    }
+//    @Transactional(readOnly = true)//its shows empty employees detail in department wise
+//    public ResponseEntity<?> getAllDepartmentWithEmployeeDetails(Integer page) {
+//        Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page, 5));
+//        List<GetAllDepartmentWithEmployeeDetails> collect = getDepartmentRepAll.stream().map(department -> {
+//            Long id = department.getId();
+//            String departmentName = department.getName();
+//            List<Employees> employees = employeesRepository.findByDepartmentId(id);
+//            GetAllDepartmentWithEmployeeDetails getAllDepartmentWithEmployeeDetails = new GetAllDepartmentWithEmployeeDetails(departmentName, employees.size(), employees);
+//            return getAllDepartmentWithEmployeeDetails;
+//        }).collect(Collectors.toList());
+//
+//        DepartmentWithPageResponse departmentWithPageResponse=new DepartmentWithPageResponse();
+//        departmentWithPageResponse.setDetailsDepartmentWithEmployee(collect);
+//        departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
+//        departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements()+1);
+//        departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
+//        departmentWithPageResponse.setLastPage(getDepartmentRepAll.isLast());
+//        departmentWithPageResponse.setTotalPages(getDepartmentRepAll.getTotalPages());
+//        return ResponseEntity.ok(departmentWithPageResponse);
+//    }
 
-    @Transactional(readOnly = true)
-    public ResponseEntity testapi() {
-        List<Department> getDepartmentRepAll = getDepartmentRep.findAll();
+    @Transactional(readOnly = true)//not show empty employees detail in department wise
+    public ResponseEntity getAllDepartmentWithEmployeeDetails(Integer page,Integer size,String sortBy, String sortDir) {
+        Sort sort = (sortDir.equalsIgnoreCase("asc")) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page,size,sort));
         List<GetAllDepartmentWithEmployeeDetails> collect = getDepartmentRepAll.stream().map(department -> {
             Long id = department.getId();
             String departmentName = department.getName();
@@ -116,7 +137,15 @@ public class DepartmentImp {
             GetAllDepartmentWithEmployeeDetails getAllDepartmentWithEmployeeDetails = new GetAllDepartmentWithEmployeeDetails(departmentName, employees.size(), employees);
             return getAllDepartmentWithEmployeeDetails;
         }).filter(emp -> !emp.getEmployeesList().isEmpty()).collect(Collectors.toList());
-        return ResponseEntity.ok(collect);
+
+        DepartmentWithPageResponse departmentWithPageResponse=new DepartmentWithPageResponse();
+        departmentWithPageResponse.setDetailsDepartmentWithEmployee(collect);
+        departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
+        departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
+        departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());
+        departmentWithPageResponse.setLastPage(getDepartmentRepAll.isLast());
+        departmentWithPageResponse.setTotalPages(getDepartmentRepAll.getTotalPages());
+        return ResponseEntity.ok(departmentWithPageResponse);
     }
 
 

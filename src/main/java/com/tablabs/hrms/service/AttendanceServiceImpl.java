@@ -3,7 +3,7 @@ package com.tablabs.hrms.service;
 import com.tablabs.hrms.entity.Attendance;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.Message;
-import com.tablabs.hrms.models.responseDTO.AttendanceAlongEmployeeDto;
+import com.tablabs.hrms.models.response.AttendanceAlongEmployeeDto;
 import com.tablabs.hrms.repository.AttendanceRepository;
 import com.tablabs.hrms.repository.EmployeesRepository;
 
