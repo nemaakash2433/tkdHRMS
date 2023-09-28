@@ -3,12 +3,10 @@ package com.tablabs.hrms.service;
 import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.Message;
-import com.tablabs.hrms.models.response.EmployeeResponse;
 import com.tablabs.hrms.models.response.GetEmployeesWithDepartmentResponse;
-import com.tablabs.hrms.models.response.GetMessageAllEmployeeWithDepartmentResponse;
-import com.tablabs.hrms.models.response.GetMessageEmployeeWithDepartment;
 import com.tablabs.hrms.repository.DepartmentRepositroy;
 import com.tablabs.hrms.repository.EmployeesRepository;
+import com.tablabs.hrms.util.JsonObjectFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,17 +44,16 @@ public class EmployeesServiceImpl {
     public ResponseEntity<?> createEmployee(Employees employees) {
         log.info("Request for create employee : {}",employees.getId());
         if(employees!=null) {
-            if(departmentRepositroy.existsById(employees.getDepartmentId())) {
-                employees.setImage("default.png");
-                Employees result = employeesRepository.save(employees);
-                EmployeeResponse employeeResponse = new EmployeeResponse();
-                employeeResponse.setMessage("Successfully retrieve data");
-                employeeResponse.setResult(true);
-                employeeResponse.setData(result);
-                return ResponseEntity.ok().body(employeeResponse);
-            }else{
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Department Id doesn't exists our record!!"));
+            if(!employeesRepository.existsByEmployeeId(employees.getEmployeeId())) {
+                if (departmentRepositroy.existsById(employees.getDepartmentId())) {
+                    employees.setImage("default.png");
+                    Employees result = employeesRepository.save(employees);
+                    return ResponseEntity.ok().body(new JsonObjectFormat("Successfully retrieve data!!",true,result));
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false, "Department Id doesn't exists our record!!"));
+                }
             }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Employee is already reported!!"));
         }
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
@@ -77,12 +74,12 @@ public class EmployeesServiceImpl {
         return ResponseEntity.noContent().build();
     }
 
-    public ResponseEntity<?> delete(Long id) {
-        if (employeesRepository.existsById(id)) {
-            employeesRepository.deleteById(id);
-            return ResponseEntity.ok().build();
+    public ResponseEntity<?> delete(String empId) {
+        if (employeesRepository.existsByEmployeeId(empId)) {
+            employeesRepository.deleteByEmployeeId(empId);
+            return ResponseEntity.ok().body(new Message(true,"Successfully deleted!!"));
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Employee id doesn't exists in our record!!"));
     }
 
     public ResponseEntity updateEmployee(Employees employees,MultipartFile multipartFile) {
@@ -105,7 +102,7 @@ public class EmployeesServiceImpl {
                 employees.getDesignation(),
                 employees.getContact(),
                 department);
-        return ResponseEntity.ok().body(new GetMessageEmployeeWithDepartment(true,"Successfully retrieve",getEmployeesWithDepartmentResponse));
+        return ResponseEntity.ok().body(new JsonObjectFormat("Successfully retrieve",true,getEmployeesWithDepartmentResponse));
     }
     public ResponseEntity<?> getAllEmployeeWithDepartmentDetails(){
         log.debug("Get All Employee With DepartmentDetails");
@@ -122,6 +119,6 @@ public class EmployeesServiceImpl {
             return employeesWithDepartmentResponse;
 
         }).collect(Collectors.toList());
-        return ResponseEntity.ok(new GetMessageAllEmployeeWithDepartmentResponse(true,"Successfully retrieve data",getEmployeesWithDepartmentResponses));
+        return ResponseEntity.ok(new JsonObjectFormat("Successfully retrieve data",true,getEmployeesWithDepartmentResponses));
     }
 }

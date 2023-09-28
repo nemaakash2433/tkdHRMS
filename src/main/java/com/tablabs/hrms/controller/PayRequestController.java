@@ -6,11 +6,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.tablabs.hrms.errors.EmployeeDoesNotExistException;
-import com.tablabs.hrms.models.Message;
+import com.tablabs.hrms.models.request.PayRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.entity.PayRequest;
-import com.tablabs.hrms.models.request.PayRequestDto;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.repository.PayRequestRepository;
 import com.tablabs.hrms.util.JsonObjectFormat;
@@ -94,25 +92,21 @@ public class PayRequestController {
 
 	// GetById
 	@GetMapping("/payRequest/getById")
-	public ResponseEntity<?> getVacationsById(@RequestParam("id") Long id) throws JsonProcessingException {
+	public ResponseEntity<String> getVacationsById(@RequestParam("id") Long id) throws JsonProcessingException {
 
 		try {
-
 			Optional<PayRequest> payRequest = payRequestRepository.findById(id);
-
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 
 			jsonobjectFormat.setMessage("PayReqests fetch successfully");
 			jsonobjectFormat.setSuccess(true);
 			jsonobjectFormat.setData(payRequest.get());
 
-//			ObjectMapper Obj = new ObjectMapper();
-//			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 
 		} catch (Exception e) {
-			// TODO: handle exception
-
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 
 			jsonobjectFormat.setMessage("PayReqests can not be Found");
@@ -129,33 +123,19 @@ public class PayRequestController {
 
 	// Save
 	@PostMapping("/payRequest/save")
-	public ResponseEntity<?> savepayRequest(@RequestBody PayRequest payRequest) {
+	public ResponseEntity<String> savepayRequest(@RequestBody PayRequest payRequest) throws JsonProcessingException {
 
 		try {
-			if(!payRequestRepository.existsByEmployeeId(payRequest.getEmployeeId())) {
 
-				if (employeesRepository.existsByEmployeeId(payRequest.getEmployeeId())) {
+			PayRequest payRequest1 = payRequestRepository.save(payRequest);
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("PayReqests saved successfully");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData(payRequest1);
 
-					Double grossSalary = payRequest.getGrossSalary();
-					Double deduction = payRequest.getDeduction();
-					String netSalary = String.valueOf(grossSalary - deduction);
-					String replace = netSalary.replace('-', ' ');
-					Double aDouble = Double.valueOf(replace);
-					payRequest.setNetSalary(aDouble);
-
-					PayRequest payRequest1 = payRequestRepository.save(payRequest);
-					JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-					jsonobjectFormat.setMessage("PayReqests saved successfully");
-					jsonobjectFormat.setSuccess(true);
-					jsonobjectFormat.setData(payRequest1);
-
-//				ObjectMapper Obj = new ObjectMapper();
-//				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-					return ResponseEntity.ok().body(jsonobjectFormat);
-				}
-				return ResponseEntity.ok(new Message(false, "Employee doesn't exists in our record!!"));
-			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Employee salary is already reported!!"));
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -165,9 +145,9 @@ public class PayRequestController {
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
 
-//			ObjectMapper Obj = new ObjectMapper();
-//			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 
 		}
 
@@ -204,7 +184,6 @@ public class PayRequestController {
 		} catch (Exception e) {
 
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
 			jsonobjectFormat.setMessage("Unable to Delete Vacations");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");

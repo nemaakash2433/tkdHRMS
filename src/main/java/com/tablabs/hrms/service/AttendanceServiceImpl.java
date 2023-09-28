@@ -57,7 +57,7 @@ public class AttendanceServiceImpl{
 			attendanceAlongEmployeeDto.setEmployeeName(employee.getFirstname().concat(" "+employee.getLastname()));
 			attendanceAlongEmployeeDto.setEmpImage(employee.getImage());
 			attendanceAlongEmployeeDto.setMarkedAs(attendance.getMarkedAs());
-			attendanceAlongEmployeeDto.setWorkingHours(attendance.getInOrOut() + "-" + attendance.getInOrOut());
+			attendanceAlongEmployeeDto.setWorkingHours(attendance.getCheckIn() + "-" + attendance.getCheckOut());
 			attendanceAlongEmployeeDto.setCheckIn(attendance.getTime().toString());
 			attendanceAlongEmployeeDto.setCheckout(attendance.getTime().toString());
 			attendanceAlongEmployeeDto.setDesignation(employee.getDesignation());

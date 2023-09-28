@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import com.tablabs.hrms.models.response.LeaveRequestDto;
 import com.tablabs.hrms.models.response.LeaveRequestsDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,16 +24,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.entity.Leaves;
+
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.repository.LeavesRepository;
 import com.tablabs.hrms.util.JsonObjectFormat;
 
 
+
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-//@Api(value = "Leaves controller", description = "used to save,update and fetch Leaves details")
 @RequestMapping("/api")
 public class LeavesController {
 
@@ -41,18 +46,24 @@ public class LeavesController {
 	EmployeesRepository employeesRepository;
 
 	// GetAll
-	@GetMapping("/Leaves/getAll")
-	public ResponseEntity<?> getAllLeaves() throws JsonProcessingException {
-
+	@GetMapping("/Leaves/getAll/ByPagingAndSorting")
+	public ResponseEntity<?> getAllLeaves(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
+            @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
+            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "dsc", required = false)String sortDir) throws JsonProcessingException {	
+		Sort sort = (sortDir.equalsIgnoreCase("asc")) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 		try {
+	        Page<Leaves> leavesFromDb = leavesRepository.findAll(PageRequest.of(page, size,sort));
+
 			List<LeaveRequestsDto> leaves = new ArrayList<>();
-			List<Leaves> Garage = leavesRepository.findAll();
+			
 			List<Employees> employees = employeesRepository
-					.findAllByEmployeeid(Garage.stream().map(Leaves::getEmployeeId).collect(Collectors.toList()));
-			Garage.stream().forEach(leave -> {
+					.findAllByEmployeeid(leavesFromDb.stream().map(Leaves::getEmployeeId).collect(Collectors.toList()));
+			leavesFromDb.stream().forEach(leave -> {
 				Optional<Employees> employee = employees.stream()
 						.filter(emp -> emp.getEmployeeId().equals(String.valueOf(leave.getEmployeeId()))).findFirst();
 				LeaveRequestsDto leaveRequestDto = new LeaveRequestsDto();
+				leaveRequestDto.setId(leave.getId());
 				leaveRequestDto.setEmployeeName(employee.get().getFirstname().concat(employee.get().getLastname()));
 				leaveRequestDto.setEmpImage(employee.get().getImage());
 				leaveRequestDto.setFromDate(leave.getStartDate());
@@ -62,11 +73,19 @@ public class LeavesController {
 				leaveRequestDto.setStatus(leave.getStatus());
 				leaves.add(leaveRequestDto);
 			});
-
+//			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+//
+//			jsonobjectFormat.setMessage("Leaves Fetched Successfully");
+//			jsonobjectFormat.setSuccess(true);
+//			jsonobjectFormat.setData(leaves);
+//
+//			ObjectMapper Obj = new ObjectMapper();
+//			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+//			return ResponseEntity.ok().body(customExceptionStr);
 			return ResponseEntity.ok().body(new LeaveRequestDto(leaves));
-
-		} catch (Exception e) {
 			
+		} catch (Exception e) {
+
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 
 			jsonobjectFormat.setMessage("Leaves can not be Found");
@@ -75,62 +94,26 @@ public class LeavesController {
 
 			ObjectMapper Obj = new ObjectMapper();
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 
 		}
 
 	}
 
-	// pegination
-	/*
-	 * @GetMapping("/Leaves/getByPages") public ResponseEntity<String>
-	 * getAllLeaves(@RequestParam(value = "page", required = false) Integer
-	 * page, @RequestParam(value = "size", required = false) Integer size) throws
-	 * JsonProcessingException { if (size == null) size = Integer.valueOf(10); if
-	 * (page == null) page = Integer.valueOf(0);
-	 * 
-	 * PageRequest pageRequest = new PageRequest(page.intValue(), size.intValue());
-	 * Pageable pageable =new PageRequest(page, size); Page<Leaves> obj =
-	 * (Page<Leaves>) leavesRepository.findAll(pageable); //
-	 * System.out.println(" obj " + obj.size()); if (obj.getSize()!=0) { // PageImpl
-	 * pageImpls = new PageImpl(obj, (Pageable)pageRequest, obj.size());
-	 * JsonObjectFormat jsonObjectFormat = new JsonObjectFormat();
-	 * jsonObjectFormat.setMessage("Got all Leaves successfully");
-	 * jsonObjectFormat.setSuccess(true); jsonObjectFormat.setData(obj);
-	 * ObjectMapper objectMapper = new ObjectMapper(); String str =
-	 * objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(
-	 * jsonObjectFormat); return ResponseEntity.ok().body(str); } JsonObjectFormat
-	 * jsonobjectFormat = new JsonObjectFormat();
-	 * jsonobjectFormat.setMessage("Leaves not found");
-	 * jsonobjectFormat.setSuccess(false); ObjectMapper Obj = new ObjectMapper();
-	 * String customExceptionStr =
-	 * Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-	 * return ResponseEntity.ok().body(customExceptionStr); }
-	 */
 
 	// GetById
 	@GetMapping("/Leaves/getById")
-	public ResponseEntity<String> getLeavesById(@RequestParam("id") Long id) throws JsonProcessingException {
-
+	public ResponseEntity<?> getLeavesById(@RequestParam("id") Long id) throws JsonProcessingException {
 		try {
-
-			Optional<Leaves> vehicle = leavesRepository.findById(id);
-
+			Optional<Leaves> leaves = leavesRepository.findById(id);
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
 			jsonobjectFormat.setMessage("Leaves fetch successfully");
 			jsonobjectFormat.setSuccess(true);
-			jsonobjectFormat.setData(vehicle.get());
-
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(customExceptionStr);
+			jsonobjectFormat.setData(leaves.get());
+			return ResponseEntity.ok().body(leaves.get());
 
 		} catch (Exception e) {
-			// TODO: handle exception
-
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
 			jsonobjectFormat.setMessage("Leaves can not be Found");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
@@ -138,14 +121,12 @@ public class LeavesController {
 			ObjectMapper Obj = new ObjectMapper();
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
 			return ResponseEntity.ok().body(customExceptionStr);
-
 		}
-
 	}
 
 	// Save
 	@PostMapping("/Leaves/save")
-	public ResponseEntity<JsonObjectFormat> saveLeaves(@RequestBody Leaves content) throws JsonProcessingException {
+	public ResponseEntity<?> saveLeaves(@RequestBody Leaves content) throws JsonProcessingException {
 
 		try {
 
@@ -157,7 +138,6 @@ public class LeavesController {
 			return ResponseEntity.ok().body(jsonobjectFormat);
 
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("Leaves not saved successfully " + e.getMessage());
@@ -166,66 +146,33 @@ public class LeavesController {
 
 			ObjectMapper Obj = new ObjectMapper();
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
-
+			return ResponseEntity.ok().body(customExceptionStr);
 		}
-
 	}
 
 	// Delete
 	@DeleteMapping("/Leaves/deleteById")
-	public ResponseEntity<String> deleteLeavesById(@RequestParam("id") Long id) throws JsonProcessingException {
-
-		try {
-			Optional<Leaves> service = leavesRepository.findById(id);
-			if (service.get() != null) {
-				leavesRepository.deleteById(id);
-				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
-				jsonobjectFormat.setMessage("Leaves Deleted successfully");
-				jsonobjectFormat.setSuccess(true);
-				jsonobjectFormat.setData("");
-
-				ObjectMapper Obj = new ObjectMapper();
-				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-				return ResponseEntity.ok().body(customExceptionStr);
-
-			}
-
-			else {
-
-				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
-				jsonobjectFormat.setMessage("Unable to Delete Leaves");
-				jsonobjectFormat.setSuccess(false);
-				jsonobjectFormat.setData("");
-
-				ObjectMapper Obj = new ObjectMapper();
-				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-				return ResponseEntity.ok().body(customExceptionStr);
-
-			}
-
-		} catch (Exception e) {
-			// TODO: handle exception
-
+	public ResponseEntity<?> deleteLeavesById(@RequestParam("id") Long id) {
+		Optional<Leaves> service = leavesRepository.findById(id);
+		if (service.isPresent()) {
+			leavesRepository.deleteById(service.get().getId());
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-
+			jsonobjectFormat.setMessage("Leaves Deleted successfully");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData("");
+			return ResponseEntity.ok().body(jsonobjectFormat);
+		} else {
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("Unable to Delete Leaves");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
-
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(customExceptionStr);
-
+			return ResponseEntity.ok().body(jsonobjectFormat);
 		}
-
 	}
 
 	// This api is used to update particular Scheme by Id in database
 	@PutMapping("/Leaves/update")
-	public ResponseEntity<String> updateLeaves(@RequestBody Leaves address1) throws JsonProcessingException {
+	public ResponseEntity<?> updateLeaves(@RequestBody Leaves address1) throws JsonProcessingException {
 
 		try {
 			Optional<Leaves> address = leavesRepository.findById(address1.getId());
@@ -233,14 +180,12 @@ public class LeavesController {
 			if (address1.getStatus() != null) {
 				address.get().setStatus(address1.getStatus());
 			}
-
 			if (address1.getDateApplied() != null) {
 				address.get().setDateApplied(address1.getDateApplied());
 			}
 			if (address1.getReason() != null) {
 				address.get().setReason(address1.getReason());
 			}
-
 			if (address1.getEmployeeId() != null) {
 				address.get().setEmployeeId(address1.getEmployeeId());
 			}
@@ -250,19 +195,15 @@ public class LeavesController {
 			if (address1.getNumberOfDays() != null) {
 				address.get().setNumberOfDays(address1.getNumberOfDays());
 			}
-
 			if (address1.getStartDate() != null) {
 				address.get().setStartDate(address1.getStartDate());
 			}
-
 			Leaves AddressUser1 = leavesRepository.save(address.get());
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("Leaves updated successfully");
 			jsonobjectFormat.setSuccess(true);
 			jsonobjectFormat.setData(AddressUser1);
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(customExceptionStr);
+			return ResponseEntity.ok().body(jsonobjectFormat);
 
 		} catch (Exception e) {
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();

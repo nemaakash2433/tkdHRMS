@@ -66,11 +66,11 @@ public class EmployeesController {
         return ResponseEntity.ok("Please give proper id!!");
     }
 
-    @DeleteMapping("/deleteEmployees/{id}")
-    public ResponseEntity<?> deleteEmployees(@PathVariable Long id) {
-        log.debug("REST request to delete Employees : {}", id);
-        if (id > 0) {
-            return employeesService.delete(id);
+    @DeleteMapping("/deleteEmployees")
+    public ResponseEntity<?> deleteEmployees(@RequestParam(name = "employeeId") String empId) {
+        log.debug("REST request to delete Employees : {}", empId);
+        if (!empId.isEmpty()) {
+            return employeesService.delete(empId);
         }
         return ResponseEntity.ok("Please give proper id!!");
     }

@@ -1,10 +1,8 @@
 package com.tablabs.hrms.repository;
 
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import com.tablabs.hrms.entity.Attendance;
 import org.springframework.data.jpa.repository.*;

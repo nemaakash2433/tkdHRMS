@@ -3,12 +3,12 @@ package com.tablabs.hrms.service;
 import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.Message;
-import com.tablabs.hrms.models.response.DepartmentWithPageResponse;
 import com.tablabs.hrms.models.response.GetAllDepartmentWithEmployeeDetails;
-import com.tablabs.hrms.models.response.GetDepartmentWithPageResponse;
 import com.tablabs.hrms.models.response.GetEmployeesByDepartmentId;
+import com.tablabs.hrms.models.response.ResponseWithPageDetails;
 import com.tablabs.hrms.repository.DepartmentRepositroy;
 import com.tablabs.hrms.repository.EmployeesRepository;
+import com.tablabs.hrms.util.JsonObjectFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,14 +38,14 @@ public class DepartmentImp {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(new Message(false,"Department name is already reported!!"));
         }
         Department save = getDepartmentRep.save(department);
-        return ResponseEntity.ok(save);
+        return ResponseEntity.ok(new JsonObjectFormat("Successfully saved data in record!!",true,save));
     }
 
     @Transactional(readOnly = true)
     public ResponseEntity<?> getDepartmentById(Long departmentId) {
         Department department = getDepartmentRep.findById(departmentId).get();
         if (department != null) {
-            return ResponseEntity.ok(department);
+            return ResponseEntity.ok(new JsonObjectFormat("Successfully retrieve data!!",true,department));
         }
         return new ResponseEntity("There is no data by this id!!", HttpStatus.NOT_FOUND);
     }
@@ -56,8 +56,8 @@ public class DepartmentImp {
         Page<Department> getDepartmentRepAll = getDepartmentRep.findAll(PageRequest.of(page, size,sort));
 
         List<Department> content = getDepartmentRepAll.getContent();
-        GetDepartmentWithPageResponse departmentWithPageResponse=new GetDepartmentWithPageResponse();
-        departmentWithPageResponse.setDepartment(content);
+        ResponseWithPageDetails departmentWithPageResponse=new ResponseWithPageDetails();
+        departmentWithPageResponse.setData(content);
         departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
         departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
         departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());
@@ -65,7 +65,7 @@ public class DepartmentImp {
         departmentWithPageResponse.setTotalPages(getDepartmentRepAll.getTotalPages());
 
 
-        return ResponseEntity.ok(departmentWithPageResponse);
+        return ResponseEntity.ok(new JsonObjectFormat("Successfully retrieve the data!!",true,departmentWithPageResponse));
     }
 
     public ResponseEntity<?> deleteDepartmentById(Long departmentId) {
@@ -75,10 +75,10 @@ public class DepartmentImp {
             List<Employees> byDepartmentId = employeesRepository.findByDepartmentId(departmentId);
             if (!byDepartmentId.isEmpty()) {
                 byDepartmentId.stream().forEach(employees -> employeesRepository.deleteById(employees.getId()));
-                return ResponseEntity.ok().body("Successfully deleted");
+                return ResponseEntity.ok().body(new Message(true,"Successfully deleted!!"));
             }
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Please give valid id!!");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Please provide valid id"));
     }
 
     public ResponseEntity<?> updateDepartment(Department department, Long departmentId) {
@@ -138,14 +138,14 @@ public class DepartmentImp {
             return getAllDepartmentWithEmployeeDetails;
         }).filter(emp -> !emp.getEmployeesList().isEmpty()).collect(Collectors.toList());
 
-        DepartmentWithPageResponse departmentWithPageResponse=new DepartmentWithPageResponse();
-        departmentWithPageResponse.setDetailsDepartmentWithEmployee(collect);
+        ResponseWithPageDetails departmentWithPageResponse=new ResponseWithPageDetails();
+        departmentWithPageResponse.setData(collect);
         departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
         departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
         departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());
         departmentWithPageResponse.setLastPage(getDepartmentRepAll.isLast());
         departmentWithPageResponse.setTotalPages(getDepartmentRepAll.getTotalPages());
-        return ResponseEntity.ok(departmentWithPageResponse);
+        return ResponseEntity.ok(new JsonObjectFormat("Successfully retrieve the data!!",true,departmentWithPageResponse));
     }
 
 

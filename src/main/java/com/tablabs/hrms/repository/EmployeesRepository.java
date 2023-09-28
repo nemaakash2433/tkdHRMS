@@ -26,6 +26,8 @@ public interface EmployeesRepository extends JpaRepository<Employees, Long> {
 
     boolean existsByEmployeeId(String empId);
 
+    void deleteByEmployeeId(String empId);
+
     @Query("SELECT e FROM Employees e WHERE e.employeeId IN :empIds")
     List<Employees> findAllByEmployeeid(List<String> empIds);
 

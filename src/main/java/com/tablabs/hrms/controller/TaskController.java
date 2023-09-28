@@ -51,4 +51,19 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+
+
+    @GetMapping("/taskStatus")
+    public ResponseEntity<?> getTasksStatus(){
+        return taskImpl.getTasksStatus();
+    }
+
+    @GetMapping("/getAllTasks")
+    public ResponseEntity<?> getAllTasks(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
+                                         @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
+                                         @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+                                         @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir){
+        return taskImpl.getAllTasks(page, size, sortBy, sortDir);
+    }
 }

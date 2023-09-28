@@ -28,17 +28,17 @@ public class Attendance{
     @Column(name = "card_id")
     private Long cardId;
 
-    @Column(name = "in_or_out")
-    private String inOrOut;
-
-//    @Column(name = "location_id")
-//    private Long locationId;
+    @Column(name = "check_in")
+    private LocalTime checkIn=LocalTime.now();
+    
+    @Column(name = "check_Out")
+    private LocalTime checkOut=LocalTime.now();
 
     @Column(name = "event_Date")
-    private LocalDate date;
+    private LocalDate date=LocalDate.now();
 
     @Column(name = "event_Time")
-    private LocalTime time;
+    private LocalTime time=LocalTime.now();
     
     @Column(name="marked_as")
     private String markedAs="pending";

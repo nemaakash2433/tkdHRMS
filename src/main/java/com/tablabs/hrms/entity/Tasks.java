@@ -24,8 +24,10 @@ public class Tasks {
     private String taskId;
     private String taskName;
     private String description;
-    private Long assignee;
+    private String assignee;
     private LocalDate deadline;
     TasksStatsType tasksStatsType;
     PriorityType priority;
+
+    private String document="nothing";
 }
