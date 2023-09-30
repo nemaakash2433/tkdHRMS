@@ -57,7 +57,7 @@ public class DepartmentImp {
 
         List<Department> content = getDepartmentRepAll.getContent();
         ResponseWithPageDetails departmentWithPageResponse=new ResponseWithPageDetails();
-        departmentWithPageResponse.setData(content);
+        departmentWithPageResponse.setDetailsWithPage(content);
         departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
         departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
         departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());
@@ -139,7 +139,7 @@ public class DepartmentImp {
         }).filter(emp -> !emp.getEmployeesList().isEmpty()).collect(Collectors.toList());
 
         ResponseWithPageDetails departmentWithPageResponse=new ResponseWithPageDetails();
-        departmentWithPageResponse.setData(collect);
+        departmentWithPageResponse.setDetailsWithPage(collect);
         departmentWithPageResponse.setPageNumber(getDepartmentRepAll.getNumber());
         departmentWithPageResponse.setPageSize(getDepartmentRepAll.getSize());
         departmentWithPageResponse.setTotalElements(getDepartmentRepAll.getTotalElements());

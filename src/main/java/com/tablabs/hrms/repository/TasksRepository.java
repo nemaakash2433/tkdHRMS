@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface TasksRepository extends JpaRepository<Tasks,Long> {
 
-    boolean existsByTaskId(String taskId);
-    Tasks findByTaskId(String taskId);
+//    boolean existsByTaskId(String taskId);
+//    Tasks findByTaskId(String taskId);
 
     List<Tasks> findByTasksStatsType(TasksStatsType tasksStatsType);
 

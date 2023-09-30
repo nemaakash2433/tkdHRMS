@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TaskController {
 
     private final Logger log = LoggerFactory.getLogger(TaskController.class);
@@ -42,7 +43,7 @@ public class TaskController {
     }
 
     @GetMapping("/getTaskById")
-    public ResponseEntity getTask(@RequestParam(name = "taskId")String taskId){
+    public ResponseEntity getTask(@RequestParam(name = "taskId")Long taskId){
         try {
             log.debug("Request for get task by taskId : ",taskId);
             return taskImpl.getTaskById(taskId);

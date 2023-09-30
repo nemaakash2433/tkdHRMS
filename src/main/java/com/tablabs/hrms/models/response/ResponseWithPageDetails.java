@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ResponseWithPageDetails {
-    private Object data;
+    private Object detailsWithPage;
     private int pageNumber;
     private int pageSize;
     private long totalElements;

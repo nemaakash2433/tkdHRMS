@@ -2,6 +2,7 @@ package com.tablabs.hrms.controller;
 
 
 import com.tablabs.hrms.entity.Employees;
+import com.tablabs.hrms.models.DTO.EmployeeDTO;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.service.EmployeesServiceImpl;
 import org.apache.coyote.Response;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class EmployeesController {
 
     private final Logger log = LoggerFactory.getLogger(EmployeesController.class);
@@ -35,10 +37,10 @@ public class EmployeesController {
 
 
     @PostMapping("/createEmployees")//changes
-    public ResponseEntity<?> createEmployees(@RequestBody Employees employees) {
+    public ResponseEntity<?> createEmployees(@RequestBody EmployeeDTO employeeDTO) {
         try {
-            log.info("REST request to save Employees : {}", employees);
-            return employeesService.createEmployee(employees);
+            log.info("REST request to save Employees : {}", employeeDTO);
+            return employeesService.createEmployee(employeeDTO);
         }catch (Exception e){
             return ResponseEntity.ok(e.getMessage());
         }

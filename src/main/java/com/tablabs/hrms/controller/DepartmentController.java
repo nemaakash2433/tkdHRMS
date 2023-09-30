@@ -14,6 +14,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class DepartmentController {
     @Autowired
     private DepartmentImp departmentImp;
@@ -23,7 +24,11 @@ public class DepartmentController {
 
     @PostMapping("/createDepartment")
     public ResponseEntity<?> createDepartment(@Valid @RequestBody Department department){
-        return departmentImp.createDepartment(department);
+        try {
+            return departmentImp.createDepartment(department);
+        }catch (Exception e){
+            return ResponseEntity.ok(new Message(false,e.getMessage()));
+        }
     }
     @GetMapping("/getDepartmentById")
     public ResponseEntity<?> getDepartmentById(@RequestParam(name = "departmentId")Long departmentId){

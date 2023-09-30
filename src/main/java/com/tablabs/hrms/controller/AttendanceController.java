@@ -27,6 +27,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class AttendanceController {
 
 	private final Logger log = LoggerFactory.getLogger(AttendanceController.class);
@@ -103,7 +104,7 @@ public class AttendanceController {
 			jsonobjectFormat.setData("");
 			ObjectMapper Obj = new ObjectMapper();
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 		}
 		
 	}
@@ -116,7 +117,7 @@ public class AttendanceController {
 	 * @throws JsonProcessingException 
 	 */
 	@GetMapping("/attendances")
-	public ResponseEntity<JsonObjectFormat> getAllAttendances(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
+	public ResponseEntity<?> getAllAttendances(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
             @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
             @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "dsc", required = false)String sortDir)throws JsonProcessingException {
@@ -136,9 +137,8 @@ public class AttendanceController {
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
 			ObjectMapper Obj = new ObjectMapper();
-			 System.out.println(e);
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 		}
 	}
 
@@ -150,7 +150,7 @@ public class AttendanceController {
 	}
 
 	@DeleteMapping("/deleteAttendances/{id}")
-	public ResponseEntity<?> deleteAttendance(@PathVariable Long id) {
+	public ResponseEntity<?> deleteAttendance(@PathVariable Long id) throws JsonProcessingException {
 		log.debug("REST request to delete Attendance : {}", id);
 		
 		Optional<Attendance> attendance = attendanceRepository.findById(id);
@@ -166,7 +166,9 @@ public class AttendanceController {
 			jsonobjectFormat.setMessage("Unable to Delete Attendance");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
-			return ResponseEntity.ok().body(jsonobjectFormat);
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 		}
 	}
 
