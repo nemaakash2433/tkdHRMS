@@ -1,22 +1,24 @@
 package com.tablabs.hrms.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tablabs.hrms.entity.Comment;
 import com.tablabs.hrms.models.DTO.CommentDTO;
 import com.tablabs.hrms.service.CommentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class CommentController {
     @Autowired
     private CommentImpl commentImpl;
 
     @PostMapping("/createComment")
-    public ResponseEntity<?> createComment(@RequestBody CommentDTO commentDTO){
-        return commentImpl.createComment(commentDTO);
+    public ResponseEntity<?> createComment(@RequestBody Comment comment) throws JsonProcessingException {
+        return commentImpl.createComment(comment);
     }
 
     @PutMapping("/updateComment")
@@ -46,6 +48,11 @@ public class CommentController {
     public ResponseEntity<?> getAllCommentsByDesc(@RequestParam(name="page",defaultValue = "0",required = false)Integer page,
                                                   @RequestParam(name = "size",defaultValue = "10",required = false)Integer size){
         return commentImpl.getAllCommentsByDesc(page,size);
+    }
+
+    @GetMapping("/getTaskByIdWithCommenter")
+    public ResponseEntity<?> getTaskByIdWithCommenterResponse(@RequestParam(name = "id")Long id) throws JsonProcessingException {
+        return commentImpl.getTaskByIdWithCommenter(id);
     }
 
 

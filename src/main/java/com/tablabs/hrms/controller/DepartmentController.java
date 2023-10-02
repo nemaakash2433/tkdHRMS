@@ -1,5 +1,6 @@
 package com.tablabs.hrms.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tablabs.hrms.entity.Department;
 import com.tablabs.hrms.models.Message;
 import com.tablabs.hrms.service.DepartmentImp;
@@ -43,14 +44,14 @@ public class DepartmentController {
         return departmentImp.getAllDepartment(page,size,sortBy,sortDir);
     }
     @PutMapping("/updateDepartment")
-    public ResponseEntity<?> updateDepartment(@RequestBody Department department,@RequestParam(name = "departmentId") Long departmentId){
-        return departmentImp.updateDepartment(department,departmentId);
+    public ResponseEntity<?> updateDepartment(@RequestBody Department department) throws JsonProcessingException {
+        return departmentImp.updateDepartment(department);
     }
 
     @DeleteMapping("/deleteDepartment")
     public ResponseEntity<?> deleteDepartment(@RequestParam(name = "departmentId") Long departmentId){
         try {
-            return departmentImp.deleteDepartmentById(departmentId);
+            return departmentImp.deleteDepartment(departmentId);
         }catch (Exception e){
             log.info(" ",e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -77,6 +78,10 @@ public class DepartmentController {
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"something went error : "+e.getMessage()));
         }
+    }
+    @GetMapping("/searchDepartment")
+    public ResponseEntity<?> searchDepartmentByKeyword(@RequestParam String keyword) throws JsonProcessingException {
+        return departmentImp.searchDepartment(keyword);
     }
 
 }

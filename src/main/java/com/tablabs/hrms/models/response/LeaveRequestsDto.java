@@ -14,7 +14,8 @@ import java.time.LocalDate;
 public class LeaveRequestsDto {
 	private Long id;
 
-	private String employeeName;
+	private String firstName;
+	private String lastName;
 
 	private String empImage;
 

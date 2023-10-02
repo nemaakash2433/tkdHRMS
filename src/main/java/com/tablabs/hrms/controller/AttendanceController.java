@@ -3,10 +3,10 @@ package com.tablabs.hrms.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tablabs.hrms.entity.Attendance;
-import com.tablabs.hrms.models.response.AttendanceAlongEmployeeDto;
-import com.tablabs.hrms.models.response.AttendanceDto;
-import com.tablabs.hrms.repository.AttendanceRepository;
 
+import com.tablabs.hrms.models.response.AttendanceAlongEmployeeDto;
+import com.tablabs.hrms.repository.AttendanceRepository;
+import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.service.AttendanceServiceImpl;
 import com.tablabs.hrms.util.JsonObjectFormat;
 
@@ -15,19 +15,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AttendanceController {
 
 	private final Logger log = LoggerFactory.getLogger(AttendanceController.class);
@@ -37,76 +39,61 @@ public class AttendanceController {
 	@Autowired
 	private AttendanceServiceImpl attendanceService;
 
-	@PostMapping("/addAttendance")
-	public ResponseEntity<?> createAttendance(@RequestBody Attendance attendance) throws JsonProcessingException {
-		log.debug("REST request to save Attendance : {}", attendance);
-		try {
-			 ResponseEntity<?> addAttendance = attendanceService.addAttendance(attendance);
-			 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-				jsonobjectFormat.setMessage("Attendance Added successfully");
-				jsonobjectFormat.setSuccess(true);
-				jsonobjectFormat.setData(addAttendance);
+	@Autowired
+	EmployeesRepository employeesRepository;
 
-				return ResponseEntity.ok().body(jsonobjectFormat);
-		
-		} catch (Exception e) {
-			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-			jsonobjectFormat.setMessage("Unable to add Attendance");
-			jsonobjectFormat.setSuccess(false);
-			jsonobjectFormat.setData("");
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(jsonobjectFormat);
-		}
-		
-	}
-	@PutMapping("/updateAttendance")
-	public ResponseEntity<?> updateAttendance(@RequestBody Attendance attendance) throws URISyntaxException, JsonProcessingException {
-		log.debug("REST request to update Attendance : {}", attendance);
+	@PostMapping("/postAttendance")
+	public ResponseEntity<String> postAttendance(@RequestBody Attendance attendance) throws JsonProcessingException {
 		try {
-			Optional<Attendance> attendance1 = attendanceRepository.findById(attendance.getId());
-			if (attendance1.get() != null) {
-				if (attendance.getCardId() != null) {
-					attendance1.get().setCardId(attendance.getCardId());
-				}
-				if (attendance.getDate() != null) {
-					attendance1.get().setDate(attendance.getDate());
-				}
-				if (attendance.getEmployeeId() != null) {
-					attendance1.get().setEmployeeId(attendance.getEmployeeId());
-				}
-				if (attendance.getCheckIn() != null) {
-					attendance1.get().setCheckIn(attendance.getCheckIn());
-				}
-				if (attendance.getCheckOut() != null) {
-					attendance1.get().setCheckOut(attendance.getCheckOut());
-				}
-				if (attendance.getMarkedAs() != null) {
-					attendance1.get().setMarkedAs(attendance.getMarkedAs());
-				}
-				if (attendance.getTime() != null) {
-					attendance1.get().setTime(attendance.getTime());
-				}
-				Attendance attendance2 = attendanceRepository.save(attendance1.get());
+			if (employeesRepository.findByEmployeeId(attendance.getEmployeeId()) != null) {
+				Attendance save = attendanceRepository.save(attendance);
+
 				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-				jsonobjectFormat.setMessage("Attendance Updated successfully");
+				jsonobjectFormat.setMessage("Attendance saved successfully");
 				jsonobjectFormat.setSuccess(true);
-				jsonobjectFormat.setData(attendance2);
-
-				return ResponseEntity.ok().body(jsonobjectFormat);
-			} else
-				throw new RuntimeException("Invalid id");
+				jsonobjectFormat.setData(save);
+				ObjectMapper Obj = new ObjectMapper();
+				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+				return ResponseEntity.ok().body(customExceptionStr);
+			} else {
+				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+				jsonobjectFormat.setMessage("Enter valid employee id");
+				jsonobjectFormat.setSuccess(false);
+				jsonobjectFormat.setData(" ");
+				ObjectMapper Obj = new ObjectMapper();
+				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+				return ResponseEntity.ok().body(customExceptionStr);
+			}
 
 		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-			jsonobjectFormat.setMessage("Attendance can not be Found");
+			jsonobjectFormat.setMessage("no data found");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
 			ObjectMapper Obj = new ObjectMapper();
 			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
 			return ResponseEntity.ok().body(customExceptionStr);
 		}
-		
+	}
+
+	@PutMapping("/updateAttendance")
+	public ResponseEntity<String> updateAttendance(@RequestBody Attendance attendance)
+			throws URISyntaxException, JsonProcessingException {
+		log.debug("REST request to update Attendance : {}", attendance);
+		if (attendance.getId() == null) {
+			throw new RuntimeException("Invalid id");
+		}
+		attendance.setDate(attendance.getDate());
+		Attendance attendance2 = attendanceRepository.save(attendance);
+		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+		jsonobjectFormat.setMessage("Attendence updated successfully");
+		jsonobjectFormat.setSuccess(true);
+		jsonobjectFormat.setData(attendance2);
+		ObjectMapper Obj = new ObjectMapper();
+		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+		return ResponseEntity.ok().body(customExceptionStr);
 	}
 
 	/**
@@ -114,45 +101,38 @@ public class AttendanceController {
 	 *
 	 * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
 	 *         of attendances in body.
-	 * @throws JsonProcessingException 
+	 * @throws JsonProcessingException
 	 */
 	@GetMapping("/attendances")
-	public ResponseEntity<?> getAllAttendances(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,
-            @RequestParam(name = "size",defaultValue = "10",required = false)Integer size,
-            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "dsc", required = false)String sortDir)throws JsonProcessingException {
+	public ResponseEntity<String> getAllAttendances() throws JsonProcessingException {
 		log.debug("REST request to get all Attendances");
-		Sort sort = (sortDir.equalsIgnoreCase("asc")) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		try {
-			Page<Attendance> attenndences = attendanceRepository.findAll(PageRequest.of(page, size,sort));
-			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-			jsonobjectFormat.setMessage("Attendance fetch successfully");
-			jsonobjectFormat.setSuccess(true);
-			jsonobjectFormat.setData(attenndences);
-			return ResponseEntity.ok().body(jsonobjectFormat);
-
-		} catch (Exception e) {
-			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-			jsonobjectFormat.setMessage("Attendance can not be Found");
-			jsonobjectFormat.setSuccess(false);
-			jsonobjectFormat.setData("");
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(customExceptionStr);
-		}
+		List<Attendance> attendances = attendanceRepository.findAll();
+		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+		jsonobjectFormat.setMessage("Attendance fetch successfully");
+		jsonobjectFormat.setSuccess(true);
+		jsonobjectFormat.setData(attendances);
+		ObjectMapper Obj = new ObjectMapper();
+		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+		return ResponseEntity.ok().body(customExceptionStr);
 	}
 
 	@GetMapping("/getAttendanceByEmployeeId/{id}")
-	public ResponseEntity<List<Attendance>> getAttendance(@PathVariable String id) {
+	public ResponseEntity<String> getAttendance(@PathVariable String id) throws JsonProcessingException {
 		log.debug("REST request to get Attendance : {}", id);
 		List<Attendance> attendance = attendanceRepository.findByEmployeeId(id);
-		return ResponseEntity.ok().body(attendance);
+		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+		jsonobjectFormat.setMessage("Attendance fetch successfully");
+		jsonobjectFormat.setSuccess(true);
+		jsonobjectFormat.setData(attendance);
+		ObjectMapper Obj = new ObjectMapper();
+		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+		return ResponseEntity.ok().body(customExceptionStr);
 	}
 
 	@DeleteMapping("/deleteAttendances/{id}")
-	public ResponseEntity<?> deleteAttendance(@PathVariable Long id) throws JsonProcessingException {
+	public ResponseEntity<?> deleteAttendance(@PathVariable Long id) {
 		log.debug("REST request to delete Attendance : {}", id);
-		
+
 		Optional<Attendance> attendance = attendanceRepository.findById(id);
 		if (attendance.isPresent()) {
 			attendanceRepository.deleteById(attendance.get().getId());
@@ -166,24 +146,203 @@ public class AttendanceController {
 			jsonobjectFormat.setMessage("Unable to Delete Attendance");
 			jsonobjectFormat.setSuccess(false);
 			jsonobjectFormat.setData("");
-			ObjectMapper Obj = new ObjectMapper();
-			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-			return ResponseEntity.ok().body(customExceptionStr);
+			return ResponseEntity.ok().body(jsonobjectFormat);
 		}
 	}
 
 	@GetMapping("/getAttendanceByParticularDate/{date}")
 	public ResponseEntity<?> getAttendanceOfPrticularDate(
-			@PathVariable("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+			@PathVariable("date") @DateTimeFormat(pattern = "yyyy-MM-dd") String date) throws JsonProcessingException {
 		log.debug("REST request to get Attendance : {}", date);
-
 		if (date == null) {
-			return ResponseEntity.badRequest().body("Unable to fetch Attendance on Particular Date");
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("Unable to fetch Attendance Details By Date");
+			jsonobjectFormat.setSuccess(false);
+			jsonobjectFormat.setData("");
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
 		}
 		List<AttendanceAlongEmployeeDto> attendanceOfPrticularDate = attendanceService
 				.getAttendanceOfPrticularDate(date);
-
-		return ResponseEntity.ok().body(new AttendanceDto(attendanceOfPrticularDate));
+		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+		jsonobjectFormat.setMessage("Attendance Fetched successfully");
+		jsonobjectFormat.setSuccess(true);
+		jsonobjectFormat.setData(attendanceOfPrticularDate);
+		ObjectMapper Obj = new ObjectMapper();
+		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+		return ResponseEntity.ok().body(customExceptionStr);
 	}
 
+	@GetMapping("/getTotalWorkingHourByEmpId/{employeeId}")
+	public ResponseEntity<String> getTotalWorkingHourByEmpId(@PathVariable String employeeId)
+			throws JsonProcessingException {
+		try {
+			List<Attendance> employeeAttendance = attendanceRepository.findByEmployeeId(employeeId);
+			long totalWorkingMilliseconds = 0;
+			for (Attendance attendance : employeeAttendance) {
+				Date inTime = attendance.getInTime();
+				Date outTime = attendance.getOutTime();
+				if (inTime != null && outTime != null) {
+					long workingMilliseconds = outTime.getTime() - inTime.getTime();
+					totalWorkingMilliseconds += workingMilliseconds;
+				}
+			}
+			// Convert milliseconds to hours and minutes
+			long totalWorkingMinutes = totalWorkingMilliseconds / (60 * 1000);
+			long hours = totalWorkingMinutes / 60;
+			long minutes = totalWorkingMinutes % 60;
+
+			String response = hours + " hours " + minutes + " minutes";
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("Employees working hours fetch successfuly");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData(response);
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+
+			jsonobjectFormat.setMessage("data are not be Found");
+			jsonobjectFormat.setSuccess(false);
+			jsonobjectFormat.setData("");
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
+
+		}
+	}
+
+	@GetMapping("/getTotalWorkingHourByDate/{dateStr}")
+	public ResponseEntity<JsonObjectFormat> getTotalWorkingHourByDate(@PathVariable String dateStr)
+			throws ParseException, JsonProcessingException {
+
+		try {
+			List<Attendance> attendances = attendanceRepository.findByDate(dateStr);
+			long totalWorkingMilliseconds = 0;
+			for (Attendance attendance : attendances) {
+				Date inTime = attendance.getInTime();
+				Date outTime = attendance.getOutTime();
+				if (inTime != null && outTime != null) {
+					long workingMilliseconds = outTime.getTime() - inTime.getTime();
+					totalWorkingMilliseconds += workingMilliseconds;
+				}
+			}
+			// Convert milliseconds to hours and minutes
+			long totalWorkingMinutes = totalWorkingMilliseconds / (60 * 1000);
+			long hours = totalWorkingMinutes / 60;
+			long minutes = totalWorkingMinutes % 60;
+
+			String response = hours + " hours " + minutes + " minutes";
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("Employees working hours fetch successfuly");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData(response);
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(jsonobjectFormat);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("data are not be Found");
+			jsonobjectFormat.setSuccess(false);
+			jsonobjectFormat.setData("");
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(jsonobjectFormat);
+		}
+	}
+
+	@GetMapping("/getAllTotalWorkingHour")
+	public ResponseEntity<JsonObjectFormat> getAllTotalWorkingHour() throws ParseException, JsonProcessingException {
+		try {
+			List<Attendance> attendances = attendanceRepository.findAll();
+			long totalWorkingMilliseconds = 0;
+			for (Attendance attendance : attendances) {
+				Date inTime = attendance.getInTime();
+				Date outTime = attendance.getOutTime();
+				if (inTime != null && outTime != null) {
+					long workingMilliseconds = outTime.getTime() - inTime.getTime();
+					totalWorkingMilliseconds += workingMilliseconds;
+				}
+			}
+			// Convert milliseconds to hours and minutes
+			long totalWorkingMinutes = totalWorkingMilliseconds / (60 * 1000);
+			long hours = totalWorkingMinutes / 60;
+			long minutes = totalWorkingMinutes % 60;
+
+			String response = hours + " hours " + minutes + " minutes";
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("Employees working hours fetch successfuly");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData(response);
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(jsonobjectFormat);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+			jsonobjectFormat.setMessage("data are not be Found");
+			jsonobjectFormat.setSuccess(false);
+			jsonobjectFormat.setData("");
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(jsonobjectFormat);
+
+		}
+	}
+	@GetMapping("/getAllAttendanceWithDesc")
+	public Page<Attendance> getAllAttendanceWithDesc(@RequestParam(value = "page", required=false)Integer page,@RequestParam(value = "size", required=false)Integer size) {
+		if(size!=null){
+		}else{
+			size=10;
+		}
+		if(page!=null){
+		}else{
+			page=0;
+		}
+
+		Pageable pageable =PageRequest.of(page, size);
+		log.debug("REST request to get all Attendances");
+		return attendanceRepository.findAllByOrderByIdDesc(pageable);
+	}
+
+	@GetMapping("/searchAttendance")
+	public ResponseEntity<String> searchAttendance(@RequestParam("keyword") String keyword) throws JsonProcessingException {
+		try {
+			List<Attendance> employees= attendanceRepository.findByLocationContainingIgnoreCaseOrmarkedAsContainingIgnoreCase(keyword);
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+
+			jsonobjectFormat.setMessage("Attendance fetch successfuly");
+			jsonobjectFormat.setSuccess(true);
+			jsonobjectFormat.setData(employees);
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+
+			jsonobjectFormat.setMessage("Attendance are not be Found");
+			jsonobjectFormat.setSuccess(false);
+			jsonobjectFormat.setData("");
+
+			ObjectMapper Obj = new ObjectMapper();
+			String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+			return ResponseEntity.ok().body(customExceptionStr);
+		}
+	}
 }

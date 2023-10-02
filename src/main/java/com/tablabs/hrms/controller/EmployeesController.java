@@ -1,14 +1,20 @@
 package com.tablabs.hrms.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tablabs.hrms.entity.Employees;
 import com.tablabs.hrms.models.DTO.EmployeeDTO;
 import com.tablabs.hrms.repository.EmployeesRepository;
 import com.tablabs.hrms.service.EmployeesServiceImpl;
-import org.apache.coyote.Response;
+import com.tablabs.hrms.util.JsonObjectFormat;
+import org.apache.catalina.connector.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -21,7 +27,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class EmployeesController {
 
     private final Logger log = LoggerFactory.getLogger(EmployeesController.class);
@@ -36,31 +42,75 @@ public class EmployeesController {
     private EmployeesRepository employeesRepository;
 
 
-    @PostMapping("/createEmployees")//changes
-    public ResponseEntity<?> createEmployees(@RequestBody EmployeeDTO employeeDTO) {
+    @PostMapping("/createEmployees")
+    public ResponseEntity<?> createEmployees(@RequestBody Employees employees) {
         try {
-            log.info("REST request to save Employees : {}", employeeDTO);
-            return employeesService.createEmployee(employeeDTO);
+            log.info("REST request to save Employees : {}", employees);
+            return employeesService.createEmployee(employees);
+//            employees.setImage("default.png");
+//            Employees result = employeesRepository.save(employees);
+//            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+//            jsonobjectFormat.setMessage("Employee save successfully");
+//            jsonobjectFormat.setSuccess(true);
+//            jsonobjectFormat.setData(result);
+//            ObjectMapper Obj = new ObjectMapper();
+//            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter()
+//                    .writeValueAsString(jsonobjectFormat);
+//            return ResponseEntity.ok().body(customExceptionStr);
         }catch (Exception e){
             return ResponseEntity.ok(e.getMessage());
         }
     }
 
     @PutMapping("/updateEmployees")
-    public ResponseEntity<?> updateEmployees(@Valid @RequestPart(name = "empDetails") Employees employees, @RequestParam(name="image",defaultValue = "default.png",required = false)MultipartFile multipartFile){
+    public ResponseEntity<?> updateEmployees(@Valid @RequestPart(name = "empDetails") Employees employees) throws JsonProcessingException {
         log.debug("REST request to update Employees : {}", employees);
-        return employeesService.updateEmployee(employees,multipartFile);
+        return employeesService.updateEmployee(employees);
     }
 
 
-    @PostMapping("/getAllEmployees")
-    public List<?> getAllEmployees(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page) {
+    @PostMapping("/getAllEmployees")//ase
+    public ResponseEntity<?> getAllEmployees(@RequestParam(name = "page",defaultValue = "0",required = false)Integer page,@RequestParam(name = "size",defaultValue = "10",required = false)Integer size) throws JsonProcessingException {
         log.debug("REST request to get all Employees");
-        return employeesService.findAll(page);
+        return employeesService.findAll(page,size);
     }
+    @GetMapping("/getAllEmployeesWithDesc")//desc
+    public ResponseEntity<?> getAllEmployeesWithDesc(@RequestParam(value = "page", required=false)Integer page, @RequestParam(value = "size", required=false)Integer size) throws JsonProcessingException {
+        try {
+
+            if (size != null) {
+            } else {
+                size = 10;
+            }
+            if (page != null) {
+            } else {
+                page = 0;
+            }
+
+            Pageable pageable = PageRequest.of(page, size);
+            log.debug("REST request to get all Attendances");
+            Page<Employees> allByOrderByIdDesc = employeesRepository.findAllByOrderByIdDesc(pageable);
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Successfully fetch Data!!");
+            jsonobjectFormat.setSuccess(true);
+            jsonobjectFormat.setData(allByOrderByIdDesc);
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }catch (Exception e){
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }
+    }
+
 
     @GetMapping("/getEmployees")
-    public ResponseEntity<?> getEmployees(@RequestParam(name = "empId") String empId) {
+    public ResponseEntity<?> getEmployees(@RequestParam(name = "empId") String empId) throws JsonProcessingException {
         log.debug("REST request to get Employees : {}", empId);
         if (!empId.isEmpty()) {
             return employeesService.findOne(empId);
@@ -87,7 +137,12 @@ public class EmployeesController {
         }
     }
     @GetMapping("getAllEmployeeWithDepartment")
-    public ResponseEntity<?> getAllEmployeeWithDepartment(){
-        return employeesService.getAllEmployeeWithDepartmentDetails();
+    public ResponseEntity<?> getAllEmployeeWithDepartment() throws JsonProcessingException {
+        return employeesService.getAllEmployeeWithDepartment();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchEmployees(@RequestParam String keyword) throws JsonProcessingException {
+        return employeesService.searchEmployees(keyword);
     }
 }

@@ -10,15 +10,9 @@ import com.tablabs.hrms.models.request.PayRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +23,7 @@ import com.tablabs.hrms.repository.PayRequestRepository;
 import com.tablabs.hrms.util.JsonObjectFormat;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api")
 public class PayRequestController {
 
@@ -63,32 +58,32 @@ public class PayRequestController {
 		}
 	}
 
-	// pegination
-	@GetMapping("/payRequest/getByPages")
-	public ResponseEntity<String> getAllVacations(@RequestParam(value = "page", required = false) Integer page,
-			@RequestParam(value = "size", required = false) Integer size) throws JsonProcessingException {
-		if (size == null)
-			size = Integer.valueOf(10);
-		if (page == null)
-			page = Integer.valueOf(0);
-
-		Page<PayRequest> obj = payRequestRepository.findAll(PageRequest.of(page, size));
-		if (obj.getSize() != 0) {
-			JsonObjectFormat jsonObjectFormat = new JsonObjectFormat();
-			jsonObjectFormat.setMessage("Got all PayReqests successfully");
-			jsonObjectFormat.setSuccess(true);
-			jsonObjectFormat.setData(obj.getContent());
-			ObjectMapper objectMapper = new ObjectMapper();
-			String str = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObjectFormat);
-			return ResponseEntity.ok().body(str);
-		}
-		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-		jsonobjectFormat.setMessage("PayReqests not found");
-		jsonobjectFormat.setSuccess(false);
-		ObjectMapper Obj = new ObjectMapper();
-		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-		return ResponseEntity.ok().body(customExceptionStr);
-	}
+//	// pegination
+//	@GetMapping("/payRequest/getByPages")
+//	public ResponseEntity<String> getAllVacations(@RequestParam(value = "page", required = false) Integer page,
+//			@RequestParam(value = "size", required = false) Integer size) throws JsonProcessingException {
+//		if (size == null)
+//			size = Integer.valueOf(10);
+//		if (page == null)
+//			page = Integer.valueOf(0);
+//
+//		Page<PayRequest> obj = payRequestRepository.findAll(PageRequest.of(page, size));
+//		if (obj.getSize() != 0) {
+//			JsonObjectFormat jsonObjectFormat = new JsonObjectFormat();
+//			jsonObjectFormat.setMessage("Got all PayReqests successfully");
+//			jsonObjectFormat.setSuccess(true);
+//			jsonObjectFormat.setData(obj.getContent());
+//			ObjectMapper objectMapper = new ObjectMapper();
+//			String str = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObjectFormat);
+//			return ResponseEntity.ok().body(str);
+//		}
+//		JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+//		jsonobjectFormat.setMessage("PayReqests not found");
+//		jsonobjectFormat.setSuccess(false);
+//		ObjectMapper Obj = new ObjectMapper();
+//		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+//		return ResponseEntity.ok().body(customExceptionStr);
+//	}
 
 	// GetById
 	@GetMapping("/payRequest/getById")
@@ -218,6 +213,9 @@ public class PayRequestController {
 			if (payRequest.getNetSalary() != null) {
 				entity.get().setNetSalary(payRequest.getNetSalary());
 			}
+			if (payRequest.getStatus()!=null){
+				entity.get().setStatus(payRequest.getStatus());
+			}
 			PayRequest pay = payRequestRepository.save(entity.get());
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("PayReqests updated successfully");
@@ -240,7 +238,7 @@ public class PayRequestController {
 
 	}
 
-	
+
 	@GetMapping("/payRequestsAlongWithEmpDetails")
 	public ResponseEntity<String> getAllPayRequestsByEmployeeDeatils() throws JsonProcessingException {
 		List<PayRequest> payRequests = payRequestRepository.findAll();
@@ -277,5 +275,21 @@ public class PayRequestController {
 		String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
 		return ResponseEntity.ok().body(customExceptionStr);
 	}
+	@GetMapping("/getPayRequestWithDesc")
+	public Page<PayRequest> getAllPayRequestWithDesc(@RequestParam(value = "page", required=false)Integer page,@RequestParam(value = "size", required=false)Integer size) {
+		if(size!=null){
+		}else{
+			size=10;
+		}
+		if(page!=null){
+		}else{
+			page=0;
+		}
+
+		Pageable pageable =PageRequest.of(page, size);
+		return payRequestRepository.findAllByOrderByIdDesc(pageable);
+	}
+
+
 
 }
