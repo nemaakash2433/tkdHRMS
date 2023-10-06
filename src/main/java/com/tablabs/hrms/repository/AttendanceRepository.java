@@ -32,7 +32,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 //	List<Attendance> findByDateBetween(LocalDate valueOf, LocalDate valueOf2);
 
 	@Query("SELECT a FROM Attendance a WHERE a.date = :date")
-	List<Attendance> findByDate(@Param("date") String date);
+	Page<Attendance> findByDate(@Param("date") String date,Pageable pageable);
 
 	Optional<Attendance> findById(Long id);
 

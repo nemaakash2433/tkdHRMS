@@ -19,23 +19,17 @@ public class Department {
     @Column(name = "name")
     private String name;
 
+    private String head;
+
     @Column(name = "emp_id")
     private String employeeId;
 
     @Column(name = "contact")
     private String contact;
 
-    public Department() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
+    private boolean isActive;
 
-    public Department(Long id, String name, String head, String contact) {
-        super();
-        this.id = id;
-        this.name = name;
-        this.employeeId = head;
-        this.contact = contact;
+    public Department() {
     }
 
     public Long getId() {
@@ -55,11 +49,19 @@ public class Department {
     }
 
     public String getHead() {
-        return employeeId;
+        return head;
     }
 
     public void setHead(String head) {
-        this.employeeId = head;
+        this.head = head;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getContact() {
@@ -70,6 +72,20 @@ public class Department {
         this.contact = contact;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
 
+    public void setActive(boolean active) {
+        isActive = active;
+    }
 
+    public Department(Long id, String name, String head, String employeeId, String contact, boolean isActive) {
+        this.id = id;
+        this.name = name;
+        this.head = head;
+        this.employeeId = employeeId;
+        this.contact = contact;
+        this.isActive = isActive;
+    }
 }

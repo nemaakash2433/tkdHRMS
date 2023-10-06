@@ -1,7 +1,18 @@
 package com.tablabs.hrms.entity;
 
-import javax.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.Date;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Reward {
 
@@ -10,63 +21,15 @@ public class Reward {
     private Long id;
     private String award;
 
-    private String rating;
+//    private Double rating;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "employeeId")
-//    private Employees employees;
 
     private String employeeId;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "isEmployeeOfTheMonth")
+    private boolean isEmployeeOfTheMonth = false;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private String onWhichDate;
 
-    public String getAward() {
-        return award;
-    }
 
-    public void setAward(String award) {
-        this.award = award;
-    }
-
-    public String getRating() {
-        return rating;
-    }
-
-    public void setRating(String rating) {
-        this.rating = rating;
-    }
-
-    public String getEmployeeId() {
-        return employeeId;
-    }
-
-    public void setEmployeeId(String employeeId) {
-        this.employeeId = employeeId;
-    }
-
-    public Reward() {
-    }
-
-    public Reward(Long id, String award, String rating, String employeeId) {
-        this.id = id;
-        this.award = award;
-        this.rating = rating;
-        this.employeeId = employeeId;
-    }
-
-    @Override
-    public String toString() {
-        return "Reward{" +
-                "id=" + id +
-                ", award='" + award + '\'' +
-                ", rating='" + rating + '\'' +
-                ", employeeId='" + employeeId + '\'' +
-                '}';
-    }
 }

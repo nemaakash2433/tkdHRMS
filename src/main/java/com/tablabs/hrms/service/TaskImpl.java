@@ -84,6 +84,8 @@ public class TaskImpl {
                         taskData.setAssignee(tasks.getAssignee());
                         taskData.setDeadline(tasks.getDeadline());
                         taskData.setPriority(tasks.getPriority());
+                        taskData.setDescription(tasks.getDescription());
+                        taskData.setDocument(tasks.getDocument());
                         taskData.setTasksStatsType(tasks.getTasksStatsType());
                         Tasks result = tasksRepository.save(taskData);
                         JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
@@ -126,6 +128,12 @@ public class TaskImpl {
         }
         return ResponseEntity.ok("There is no record in this taskId");
     }
+
+//    public ResponseEntity<?> deleteTaskById(Long id){
+//        try{
+//
+//        }catch ()
+//    }
 
     public ResponseEntity<?> getTasksStatus() throws JsonProcessingException {
         try {
@@ -197,19 +205,17 @@ public class TaskImpl {
                 String taskName = tasks.getTaskName();
                 String assignee = tasks.getAssignee();
                 TasksStatsType tasksStatsType = tasks.getTasksStatsType();
-                Employees employeeData = employeesRepository.findByEmployeeId(assignee);
-                String firstname = employeeData.getFirstname();
-                String lastname = employeeData.getLastname();
-
                 TaskWithEmployeeResponse task = new TaskWithEmployeeResponse();
-                task.setEmployeeName(firstname + " " + lastname);
-
+                if(employeesRepository.existsByEmployeeId(assignee)) {
+                    Employees employeeData = employeesRepository.findByEmployeeId(assignee);
+                    String firstname = employeeData.getFirstname();
+                    String lastname = employeeData.getLastname();
+                    task.setEmployeeName(firstname + " " + lastname);
+                    task.setEmployeeData(employeeData);
+                }
                 task.setTaskName(taskName);
                 task.setTasksStatsType(tasksStatsType);
-                task.setEmployeeData(employeeData);
-
                 return task;
-
             }).collect(Collectors.toList());
 
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
@@ -237,17 +243,17 @@ public class TaskImpl {
                 List<TaskWithEmployeeResponse> taskWithEmployeeResponses = taskList.stream().map(tasks -> {
                     String taskName = tasks.getTaskName();
                     String assignee = tasks.getAssignee();
-                    Employees employeeData = employeesRepository.findByEmployeeId(assignee);
-                    String firstname = employeeData.getFirstname();
-                    String lastname = employeeData.getLastname();
                     TaskWithEmployeeResponse task = new TaskWithEmployeeResponse();
-                    task.setEmployeeName(firstname + " " + lastname);
+                    if(employeesRepository.existsByEmployeeId(assignee)) {
+                        Employees employeeData = employeesRepository.findByEmployeeId(assignee);
+                        String firstname = employeeData.getFirstname();
+                        String lastname = employeeData.getLastname();
+                        task.setEmployeeName(firstname + " " + lastname);
+                        task.setEmployeeData(employeeData);
+                    }
                     task.setTaskName(taskName);
                     task.setTasksStatsType(tasksStatsType);
-                    task.setEmployeeData(employeeData);
-
                     return task;
-
                 }).collect(Collectors.toList());
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
                 jsonobjectFormat.setMessage("Successfully Fetch Data!!");

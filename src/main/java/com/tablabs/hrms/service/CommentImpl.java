@@ -44,8 +44,6 @@ public class CommentImpl {
     public ResponseEntity<?> createComment(Comment comment) throws JsonProcessingException {
         try {
             if (employeesRepository.existsByEmployeeId(comment.getEmployeeId())) {
-
-                comment.setTime(new Date());
 //                Comment comment = modelMapper.map(commentDTO, Comment.class);
                 Comment result = commentRepository.save(comment);
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
@@ -71,18 +69,19 @@ public class CommentImpl {
 
     public ResponseEntity<?> updateComment(CommentDTO commentDTO) throws JsonProcessingException {
         try {
-            if (commentDTO.getEmployeeId() == commentRepository.findById(commentDTO.getId()).get().getEmployeeId())
-                if (employeesRepository.existsByEmployeeId(commentDTO.getEmployeeId())) {
-                    Comment comment = modelMapper.map(commentDTO, Comment.class);
-                    Comment result = commentRepository.save(comment);
-                    JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-                    jsonobjectFormat.setMessage("Successfully update the comment!!");
-                    jsonobjectFormat.setSuccess(true);
-                    jsonobjectFormat.setData(result);
-                    ObjectMapper Obj = new ObjectMapper();
-                    String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-                    return ResponseEntity.ok().body(customExceptionStr);
-                }
+            if (commentDTO.getEmployeeId() == commentRepository.findById(commentDTO.getId()).get().getEmployeeId()) {
+//                if (employeesRepository.existsByEmployeeId(commentDTO.getEmployeeId())) {
+                Comment comment = modelMapper.map(commentDTO, Comment.class);
+                Comment result = commentRepository.save(comment);
+                JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                jsonobjectFormat.setMessage("Successfully update the comment!!");
+                jsonobjectFormat.setSuccess(true);
+                jsonobjectFormat.setData(result);
+                ObjectMapper Obj = new ObjectMapper();
+                String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                return ResponseEntity.ok().body(customExceptionStr);
+//                }
+            }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee isn't exists in our record!!");
         } catch (Exception e) {
             return ResponseEntity.ok(new Message(false, "Something went wrong!! : " + e.getMessage()));
@@ -131,7 +130,7 @@ public class CommentImpl {
         }
     }
 
-    public ResponseEntity<?> getAllCommentsByDesc(int page, int size) {
+    public ResponseEntity<?> getAllCommentsByDesc(int page, int size) throws JsonProcessingException {
         try {
             //            Pageable pageable =new PageRequest(page, size);
             Page<Comment> dataWithPage = commentRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
@@ -151,7 +150,13 @@ public class CommentImpl {
             String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
             return ResponseEntity.ok().body(customExceptionStr);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
         }
     }
 
@@ -198,8 +203,8 @@ public class CommentImpl {
     public ResponseEntity<?> getTaskByIdWithCommenter(Long id) throws JsonProcessingException {
 
         try {
-            if(!tasksRepository.existsById(id)){
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false,"Task id is not exists in our record!!"));
+            if (!tasksRepository.existsById(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Message(false, "Task id is not exists in our record!!"));
             }
             Tasks tasks = tasksRepository.findById(id).get();
             List<Comment> commentsByTaskId = commentRepository.findByTaskId(id);
@@ -207,9 +212,11 @@ public class CommentImpl {
             List<CommentWithCommentersResponse> commentWithCommentersResponses = commentsByTaskId.stream().map(comment -> {
                 CommentWithCommentersResponse commentersResponse = new CommentWithCommentersResponse();
                 String employeeId = comment.getEmployeeId();
-                Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId);
+                if (employeesRepository.existsByEmployeeId(employeeId)) {
+                    Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId);
+                    commentersResponse.setCommentor(byEmployeeId);
+                }
                 commentersResponse.setId(comment.getId());
-                commentersResponse.setCommentor(byEmployeeId);
                 commentersResponse.setTime(comment.getTime());
                 commentersResponse.setComment(comment.getComment());
                 return commentersResponse;
@@ -230,7 +237,7 @@ public class CommentImpl {
             ObjectMapper Obj = new ObjectMapper();
             String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
             return ResponseEntity.ok().body(customExceptionStr);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
             jsonobjectFormat.setMessage("Something went wrong!!");

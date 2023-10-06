@@ -121,7 +121,19 @@ public class PayRequestController {
 	public ResponseEntity<String> savepayRequest(@RequestBody PayRequest payRequest) throws JsonProcessingException {
 
 		try {
-
+			if(!payRequestRepository.existsByEmployeeId(payRequest.getEmployeeId())){
+				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+				jsonobjectFormat.setMessage("Employee is not exists!!  Enter valid employee id...");
+				jsonobjectFormat.setSuccess(false);
+				jsonobjectFormat.setData("");
+				ObjectMapper Obj = new ObjectMapper();
+				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+				return ResponseEntity.ok().body(customExceptionStr);
+			}
+			double netSalaryTotal = payRequest.getGrossSalary() - payRequest.getDeduction();
+			String netSalary = String.valueOf(netSalaryTotal);
+			String netSalaryNegativeR = netSalary.replace('-', ' ');
+			payRequest.setNetSalary(Double.parseDouble(netSalaryNegativeR));
 			PayRequest payRequest1 = payRequestRepository.save(payRequest);
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("PayReqests saved successfully");
@@ -196,6 +208,15 @@ public class PayRequestController {
 	public ResponseEntity<String> updateVacations(@RequestBody PayRequest payRequest) throws JsonProcessingException {
 
 		try {
+			if(!payRequestRepository.existsByEmployeeId(payRequest.getEmployeeId())){
+				JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+				jsonobjectFormat.setMessage("Employee is not exists!!  Enter valid employee id...");
+				jsonobjectFormat.setSuccess(false);
+				jsonobjectFormat.setData("");
+				ObjectMapper Obj = new ObjectMapper();
+				String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+				return ResponseEntity.ok().body(customExceptionStr);
+			}
 			Optional<PayRequest> entity = payRequestRepository.findById(payRequest.getId());
 
 			if (payRequest.getEmployeeId() != null) {
@@ -210,12 +231,17 @@ public class PayRequestController {
 			if (payRequest.getGrossSalary() != null) {
 				entity.get().setGrossSalary(payRequest.getGrossSalary());
 			}
-			if (payRequest.getNetSalary() != null) {
-				entity.get().setNetSalary(payRequest.getNetSalary());
+			if(payRequest.getDeduction()!=null){
+				entity.get().setDeduction(payRequest.getDeduction());
 			}
+			double netSalaryTotal = payRequest.getGrossSalary() - payRequest.getDeduction();
+			String netSalary = String.valueOf(netSalaryTotal);
+			String netSalaryNegativeR = netSalary.replace('-', ' ');
+			entity.get().setNetSalary(Double.parseDouble(netSalaryNegativeR));
 			if (payRequest.getStatus()!=null){
 				entity.get().setStatus(payRequest.getStatus());
 			}
+
 			PayRequest pay = payRequestRepository.save(entity.get());
 			JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 			jsonobjectFormat.setMessage("PayReqests updated successfully");
@@ -245,19 +271,21 @@ public class PayRequestController {
 		List<String> empIds = payRequests.stream().map(PayRequest::getEmployeeId).collect(Collectors.toList());
 		List<PayRequestDto> requestDtos = new ArrayList<>();
 		List<Employees> emps = employeesRepository.findAllByEmployeeid(empIds);
-		payRequests.stream().forEach(payRequest -> {
-			PayRequestDto payDto = new PayRequestDto();
-			Employees employees = emps.stream().filter(e -> e.getEmployeeId().equals(payRequest.getEmployeeId()))
-					.findFirst().orElseThrow(() -> new EmployeeDoesNotExistException("Employee not found for PayRequest: ",payRequest.getEmployeeId() , null));
-			payDto.setEmployeeName(employees.getFirstname() + " " + employees.getLastname());
-			payDto.setEmployeeImage(employees.getImage());
-			payDto.setDesignation(employees.getDesignation());
-			payDto.setBenefits(payRequest.getBenefits());
-			payDto.setGrossSalary(payRequest.getGrossSalary());
-			payDto.setDeduction(payRequest.getDeduction());
-			payDto.setStatus(payRequest.getStatus());
-			requestDtos.add(payDto);
-		});
+		if(!emps.isEmpty()) {
+			payRequests.stream().forEach(payRequest -> {
+				PayRequestDto payDto = new PayRequestDto();
+				Employees employees = emps.stream().filter(e -> e.getEmployeeId().equals(payRequest.getEmployeeId()))
+						.findFirst().orElseThrow(() -> new EmployeeDoesNotExistException("Employee not found for PayRequest: ", payRequest.getEmployeeId(), null));
+				payDto.setEmployeeName(employees.getFirstname() + " " + employees.getLastname());
+				payDto.setEmployeeImage(employees.getImage());
+				payDto.setDesignation(employees.getDesignation());
+				payDto.setBenefits(payRequest.getBenefits());
+				payDto.setGrossSalary(payRequest.getGrossSalary());
+				payDto.setDeduction(payRequest.getDeduction());
+				payDto.setStatus(payRequest.getStatus());
+				requestDtos.add(payDto);
+			});
+		}
 
 		if (payRequests != null) {
 			JsonObjectFormat jsonObjectFormat = new JsonObjectFormat();

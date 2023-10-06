@@ -2,15 +2,16 @@ package com.tablabs.hrms.models.DTO;
 
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class CommentDTO {
     private Long id;
     private String employeeId;
     private String comment;
-    private LocalDateTime time;
+    private Date time;
 
 
-    public CommentDTO(Long id, String employeeId, String comment, LocalDateTime time) {
+    public CommentDTO(Long id, String employeeId, String comment, Date time) {
         this.id = id;
         this.employeeId = employeeId;
         this.comment = comment;
@@ -25,11 +26,11 @@ public class CommentDTO {
         this.id = id;
     }
 
-    public LocalDateTime getTime() {
+    public Date getTime() {
         return time;
     }
 
-    public void setTime(LocalDateTime time) {
+    public void setTime(Date time) {
         this.time = time;
     }
 

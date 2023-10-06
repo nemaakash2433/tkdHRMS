@@ -1,5 +1,6 @@
 package com.tablabs.hrms.models.DTO;
 
+import com.tablabs.hrms.enums.EmployeeLocation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,10 +17,11 @@ public class EmployeeDTO {
     private String lastname;
 
     private String image;
+    private String email;
 
     private String designation;
 
     private String contact;
 
-    private String location;
+    private EmployeeLocation location;
 }

@@ -63,7 +63,7 @@ public class EmployeesController {
     }
 
     @PutMapping("/updateEmployees")
-    public ResponseEntity<?> updateEmployees(@Valid @RequestPart(name = "empDetails") Employees employees) throws JsonProcessingException {
+    public ResponseEntity<?> updateEmployees(@RequestBody Employees employees) throws JsonProcessingException {
         log.debug("REST request to update Employees : {}", employees);
         return employeesService.updateEmployee(employees);
     }
@@ -75,51 +75,30 @@ public class EmployeesController {
         return employeesService.findAll(page,size);
     }
     @GetMapping("/getAllEmployeesWithDesc")//desc
-    public ResponseEntity<?> getAllEmployeesWithDesc(@RequestParam(value = "page", required=false)Integer page, @RequestParam(value = "size", required=false)Integer size) throws JsonProcessingException {
-        try {
-
-            if (size != null) {
-            } else {
-                size = 10;
-            }
-            if (page != null) {
-            } else {
-                page = 0;
-            }
-
-            Pageable pageable = PageRequest.of(page, size);
-            log.debug("REST request to get all Attendances");
-            Page<Employees> allByOrderByIdDesc = employeesRepository.findAllByOrderByIdDesc(pageable);
-            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-            jsonobjectFormat.setMessage("Successfully fetch Data!!");
-            jsonobjectFormat.setSuccess(true);
-            jsonobjectFormat.setData(allByOrderByIdDesc);
-            ObjectMapper Obj = new ObjectMapper();
-            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-            return ResponseEntity.ok().body(customExceptionStr);
-        }catch (Exception e){
-            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-            jsonobjectFormat.setMessage("Something went wrong!!");
-            jsonobjectFormat.setSuccess(false);
-            jsonobjectFormat.setData("");
-            ObjectMapper Obj = new ObjectMapper();
-            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
-            return ResponseEntity.ok().body(customExceptionStr);
-        }
+    public ResponseEntity<?> getAllEmployeesWithDesc(@RequestParam(value = "page",defaultValue = "0",required=false)Integer page, @RequestParam(value = "size",defaultValue = "10",required=false)Integer size) throws JsonProcessingException {
+        return employeesService.getAllEmployeesWithDesc(page,size);
     }
 
 
-    @GetMapping("/getEmployees")
+    @GetMapping("/getEmployeeById")
     public ResponseEntity<?> getEmployees(@RequestParam(name = "empId") String empId) throws JsonProcessingException {
         log.debug("REST request to get Employees : {}", empId);
         if (!empId.isEmpty()) {
-            return employeesService.findOne(empId);
+            return employeesService.getEmployeeById(empId);
+        }
+        return ResponseEntity.ok("Please give proper id!!");
+    }
+    @GetMapping("/getEmployeeByIdWithBoardingDetails")
+    public ResponseEntity<?> getEmployeesAlongWithBoarding(@RequestParam(name = "empId") String empId) throws JsonProcessingException {
+        log.debug("REST request to get Employees : {}", empId);
+        if (!empId.isEmpty()) {
+            return employeesService.getEmployeeByIdWithBoardingDetails(empId);
         }
         return ResponseEntity.ok("Please give proper id!!");
     }
 
     @DeleteMapping("/deleteEmployees")
-    public ResponseEntity<?> deleteEmployees(@RequestParam(name = "employeeId") String empId) {
+    public ResponseEntity<?> deleteEmployees(@RequestParam(name = "employeeId") String empId) throws JsonProcessingException {
         log.debug("REST request to delete Employees : {}", empId);
         if (!empId.isEmpty()) {
             return employeesService.delete(empId);

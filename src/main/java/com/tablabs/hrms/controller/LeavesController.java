@@ -1,7 +1,7 @@
 package com.tablabs.hrms.controller;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -242,6 +242,15 @@ public class LeavesController {
     public ResponseEntity<String> searchLeaves(@RequestParam String keyword) throws JsonProcessingException {
         try {
             List<Leaves> employees = leavesRepository.findByStatusOrLeaveTypeOrReasonContainingIgnoreCase(keyword);
+            if(employees.isEmpty()){
+                JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                jsonobjectFormat.setMessage("Leaves are not be Found!");
+                jsonobjectFormat.setSuccess(false);
+                jsonobjectFormat.setData("");
+                ObjectMapper Obj = new ObjectMapper();
+                String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                return ResponseEntity.ok().body(customExceptionStr);
+            }
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 
             jsonobjectFormat.setMessage("Leaves fetch successfuly");
@@ -256,7 +265,7 @@ public class LeavesController {
             e.printStackTrace();
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
 
-            jsonobjectFormat.setMessage("Leaves are not be Found");
+            jsonobjectFormat.setMessage("Something went wrong!!");
             jsonobjectFormat.setSuccess(false);
             jsonobjectFormat.setData("");
 
@@ -279,9 +288,9 @@ public class LeavesController {
             Long remoteCount = employees.stream().filter(e -> e.getEmployeeLocation() == EmployeeLocation.REMOTE)
                     .count();
             Long totalEmployeesCount = employees.stream().count();
-            Long leavesCount = leavesFromDb.stream().filter(leave -> (leave.getStartDate().isBefore(LocalDate.now())
-                            && leave.getEndDate().isAfter((LocalDate.now())))
-                            || (leave.getStartDate().isEqual(LocalDate.now()) || leave.getEndDate().isEqual(LocalDate.now())))
+            Long leavesCount = leavesFromDb.stream().filter(leave -> (leave.getStartDate().toInstant().isBefore(new Date().toInstant()))
+                            && leave.getEndDate().toInstant().isAfter((new Date()).toInstant())
+                            || (leave.getStartDate()==(new Date()) || leave.getEndDate()==(new Date())))
                     .count();
 
             LeaveDashboard leaveRequestDto = new LeaveDashboard();

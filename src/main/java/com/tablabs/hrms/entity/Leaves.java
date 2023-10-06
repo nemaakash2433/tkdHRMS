@@ -1,6 +1,6 @@
 package com.tablabs.hrms.entity;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 import javax.persistence.*;
 
@@ -19,7 +19,7 @@ public class Leaves {
 	private String employeeId;
 
 	@Column(name = "date_applied")
-	private LocalDate dateApplied;
+	private Date dateApplied;
 
 	@Column(name = "reason")
 	private String reason;
@@ -28,10 +28,10 @@ public class Leaves {
 	private String status;
 
 	@Column(name = "start_date")
-	private LocalDate startDate;
+	private Date startDate;
 
 	@Column(name = "end_date")
-	private LocalDate endDate;
+	private Date endDate;
 
 	@Column(name = "number_of_days")
 	private Long numberOfDays;
@@ -43,8 +43,8 @@ public class Leaves {
 		super();
 	}
 
-	public Leaves(Long id, String employeeId, LocalDate dateApplied, String reason, String status, LocalDate startDate,
-			LocalDate endDate, Long numberOfDays, String leaveType) {
+	public Leaves(Long id, String employeeId, Date dateApplied, String reason, String status, Date startDate,
+				  Date endDate, Long numberOfDays, String leaveType) {
 		super();
 		this.id = id;
 		this.employeeId = employeeId;
@@ -73,11 +73,11 @@ public class Leaves {
 		this.employeeId = employeeId;
 	}
 
-	public LocalDate getDateApplied() {
+	public Date getDateApplied() {
 		return dateApplied;
 	}
 
-	public void setDateApplied(LocalDate dateApplied) {
+	public void setDateApplied(Date dateApplied) {
 		this.dateApplied = dateApplied;
 	}
 
@@ -97,19 +97,19 @@ public class Leaves {
 		this.status = status;
 	}
 
-	public LocalDate getStartDate() {
+	public Date getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(LocalDate startDate) {
+	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
 	}
 
-	public LocalDate getEndDate() {
+	public Date getEndDate() {
 		return endDate;
 	}
 
-	public void setEndDate(LocalDate endDate) {
+	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
 	}
 

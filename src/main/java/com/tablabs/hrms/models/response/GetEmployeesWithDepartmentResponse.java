@@ -8,21 +8,32 @@ import lombok.Setter;
 public class GetEmployeesWithDepartmentResponse {
 
 
-    private Long id;
+    private String employeeId;
     private String firstName;
     private String lastName;
     private String image;
+    private String contact;
+    private String email;
+
     private String designation;
+    private Department department;
 
-    public GetEmployeesWithDepartmentResponse() {
+    public String getDesignation() {
+        return designation;
     }
 
-    public Long getId() {
-        return id;
+    public void setDesignation(String designation) {
+        this.designation = designation;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getFirstName() {
@@ -49,20 +60,20 @@ public class GetEmployeesWithDepartmentResponse {
         this.image = image;
     }
 
-    public String getDesignation() {
-        return designation;
-    }
-
-    public void setDesignation(String designation) {
-        this.designation = designation;
-    }
-
     public String getContact() {
         return contact;
     }
 
     public void setContact(String contact) {
         this.contact = contact;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Department getDepartment() {
@@ -73,17 +84,16 @@ public class GetEmployeesWithDepartmentResponse {
         this.department = department;
     }
 
-    public GetEmployeesWithDepartmentResponse(Long id, String firstName, String lastName, String image, String designation, String contact, Department department) {
-        this.id = id;
+    public GetEmployeesWithDepartmentResponse() {
+    }
+
+    public GetEmployeesWithDepartmentResponse(String employeeId, String firstName, String lastName, String image, String contact, String email, Department department) {
+        this.employeeId = employeeId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.image = image;
-        this.designation = designation;
         this.contact = contact;
+        this.email = email;
         this.department = department;
     }
-
-    private String contact;
-    private Department department;
-
 }

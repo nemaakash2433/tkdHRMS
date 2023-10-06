@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Setter
 @Getter
@@ -21,9 +22,9 @@ public class LeaveRequestsDto {
 
 	private String LeaveType;
 
-	private LocalDate fromDate;
+	private Date fromDate;
 
-	private LocalDate toDate;
+	private Date toDate;
 
 	private String reason;
 

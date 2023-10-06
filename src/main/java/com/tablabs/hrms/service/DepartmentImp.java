@@ -22,15 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Service
 public class DepartmentImp {
@@ -80,12 +76,14 @@ public class DepartmentImp {
         try {
             log.debug("Request for delete department : {}", departmentId);
             if (departmentRepositroy.existsById(departmentId)) {
-                departmentRepositroy.deleteById(departmentId);
-                List<Employees> byDepartmentId = employeesRepository.findByDepartmentId(departmentId);
-                if (!byDepartmentId.isEmpty()) {
-                    byDepartmentId.stream().forEach(employees -> employeesRepository.deleteById(employees.getId()));
-
-                }
+                Department department = departmentRepositroy.findById(departmentId).get();
+                department.setActive(false);
+                departmentRepositroy.save(department);
+//                List<Employees> byDepartmentId = employeesRepository.findByDepartmentId(departmentId);
+//                if (!byDepartmentId.isEmpty()) {
+//                    byDepartmentId.stream().forEach(employees -> employeesRepository.deleteById(employees.getId()));
+//
+//                }
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
                 jsonobjectFormat.setMessage("department Deleted successfully");
                 jsonobjectFormat.setSuccess(true);
@@ -162,7 +160,7 @@ public class DepartmentImp {
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
                 jsonobjectFormat.setMessage("Department fetch successfully");
                 jsonobjectFormat.setSuccess(true);
-                jsonobjectFormat.setData(getEmployeesByDepartmentId);
+                jsonobjectFormat.setData(employeesByDepartmentId);
                 ObjectMapper Obj = new ObjectMapper();
                 String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
                 return ResponseEntity.ok().body(customExceptionStr);
@@ -177,7 +175,7 @@ public class DepartmentImp {
         } catch (Exception e) {
             e.printStackTrace();
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-            jsonobjectFormat.setMessage("department can not be Found");
+            jsonobjectFormat.setMessage("Something went wrong!!");
             jsonobjectFormat.setSuccess(false);
             jsonobjectFormat.setData("");
 
@@ -274,7 +272,7 @@ public class DepartmentImp {
             // TODO: handle exception
             e.printStackTrace();
             JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
-            jsonobjectFormat.setMessage("Department are not be Found");
+            jsonobjectFormat.setMessage("Something went wrong!!");
             jsonobjectFormat.setSuccess(false);
             jsonobjectFormat.setData("");
             ObjectMapper Obj = new ObjectMapper();
