@@ -126,8 +126,29 @@ public class RewardController {
     }
 
     @GetMapping("/getBestDepartment")
-    public ResponseEntity<?> getBestDepartment() throws JsonProcessingException {
+    public ResponseEntity<?> getBestDepartment(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
         return rewardService.findBestDepartment();
+    }
+    @GetMapping("/getBestDepartmentOfTheMonth")
+    public ResponseEntity<?> getBestDepartmentOfTheMonth(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
+        try {
+            if (yyyyMonth.isEmpty() || yyyyMonth == null || yyyyMonth.equals("currentMonth")) {
+                final String NEW_FORMAT = "yyyy/MM";
+                SimpleDateFormat sdf = new SimpleDateFormat(NEW_FORMAT);
+                String yyyyMonthIs = sdf.format(new Date());
+                return rewardService.findBestDepartmentOfTheMonth(yyyyMonthIs);
+            }
+            return rewardService.findBestDepartmentOfTheMonth(yyyyMonth);
+        } catch (Exception e) {
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }
+
     }
 
 

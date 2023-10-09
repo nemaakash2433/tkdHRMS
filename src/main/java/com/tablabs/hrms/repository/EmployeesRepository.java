@@ -41,4 +41,6 @@ public interface EmployeesRepository extends JpaRepository<Employees, Long> {
 
     Page<Employees> findAllByOrderByIdDesc(Pageable pageable);
 
+    Integer countByDepartmentId(Long dpId);
+
 }

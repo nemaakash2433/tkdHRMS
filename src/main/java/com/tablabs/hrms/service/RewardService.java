@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class RewardService {
@@ -475,7 +476,7 @@ public class RewardService {
                 Department department = departmentRepositroy.findById(departmentId).get();
                 bestDepartmentResponse.setDepartmentDetails(department);
                 bestDepartmentResponse.setDeparmentName(department.getName());
-            }catch (Exception e){
+            } catch (Exception e) {
                 //
             }
             bestDepartmentResponse.setRewardDetails(employeeDetailsResponses);
@@ -500,5 +501,146 @@ public class RewardService {
             return ResponseEntity.ok().body(customExceptionStr);
         }
     }
+
+    public ResponseEntity findBestDepartmentOfTheMonth(String yyyyMonth) throws JsonProcessingException {//findBestDepartmentOfTheMonth
+        try {
+            Set<String> uniqueEmployeeIds = new HashSet<>();
+            List<Reward> startingWith = rewardRepository.findByOnWhichDateStartingWith(yyyyMonth);
+
+            GetListOfRewardWithEmployeeDetails employeeDetailsWithReward=new GetListOfRewardWithEmployeeDetails();
+            List<GetListOfRewardWithEmployeeDetails> getListOfRewardWithEmployeeDetails=new ArrayList<>();
+            if (!startingWith.isEmpty()) {
+                List<GetDetailsOfDepartmentOfTheMonth> collect = startingWith.stream().map(reward -> {
+                    String employeeId = reward.getEmployeeId();
+                    GetDetailsOfDepartmentOfTheMonth detailsOfDepartmentOfTheMonth = new GetDetailsOfDepartmentOfTheMonth();
+                    if (!uniqueEmployeeIds.contains(employeeId)) {
+                        uniqueEmployeeIds.add(employeeId);
+                        List<Reward> employeeDataOnWhichDate = rewardRepository.findByEmployeeIdAndOnWhichDateStartingWith(employeeId, yyyyMonth);
+                        int noOfAwardByThisEmployee = employeeDataOnWhichDate.size();
+
+                        Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId);
+                        Department department = departmentRepositroy.findById(byEmployeeId.getDepartmentId()).get();
+
+                        detailsOfDepartmentOfTheMonth.setDepartmentId(department.getId());
+                        detailsOfDepartmentOfTheMonth.setEmployeeId(employeeId);
+                        detailsOfDepartmentOfTheMonth.setNoOfAwards(noOfAwardByThisEmployee);
+
+                        employeeDetailsWithReward.setEmployees(byEmployeeId);
+                        employeeDetailsWithReward.setRewardList(employeeDataOnWhichDate);
+                        getListOfRewardWithEmployeeDetails.add(employeeDetailsWithReward);
+
+                        return detailsOfDepartmentOfTheMonth;
+                    } else {
+                        return null;
+                    }
+                }).filter(details -> details != null).collect(Collectors.toList());
+
+                Set<Long> uniqueDepartmentIds = new HashSet<>();
+                Map<Long, Integer> map = new HashMap<>();
+                List<Map<Long, Integer>> collect1 = collect.stream().map(noOfRewardDetails -> {
+                    Long departmentId = noOfRewardDetails.getDepartmentId();
+                    if (!map.containsKey(departmentId)) {
+                        map.put(departmentId, noOfRewardDetails.getNoOfAwards());
+                    } else {
+                        Integer integer = map.get(departmentId);
+                        map.put(departmentId, integer + noOfRewardDetails.getNoOfAwards());
+                    }
+                    return map;
+                }).collect(Collectors.toList());
+                if (!collect1.isEmpty()) {
+                    List<Map<Long, Integer>> collect2 = collect1.stream().filter(longIntegerMap -> !uniqueDepartmentIds.add(longIntegerMap.keySet().iterator().next())).collect(Collectors.toList());
+
+                    Optional<Map.Entry<Long, Integer>> max=null;
+                    if(collect2.isEmpty()) {
+//                        System.out.println("empty");
+                        max = collect1.stream()
+                                .flatMap(mapValue -> mapValue.entrySet().stream())
+                                .max(Comparator.comparing(Map.Entry::getValue));
+                    }else{
+//                        System.out.println("Not empty");
+                        max = collect2.stream()
+                                .flatMap(mapValue -> mapValue.entrySet().stream())
+                                .max(Comparator.comparing(Map.Entry::getValue));
+                    }
+//                    try {//check the condition
+//                        System.out.println(collect2);//null
+//                        System.out.println(max.get());
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+
+                    if (max.isPresent()) {
+                        Map.Entry<Long, Integer> longIntegerEntry = max.get();
+                        Long getDepartmentOfTheMonthId = longIntegerEntry.getKey();
+                        Integer noOfRewards = longIntegerEntry.getValue();
+
+                        Department department = departmentRepositroy.findById(getDepartmentOfTheMonthId).get();
+
+                        Integer noOfEmployeeAccociateWithDepartment = employeesRepository.countByDepartmentId(department.getId());
+                        DepartmentOfTheMonthDetailsResponse departmentOfTheMonthDetailsResponse = new DepartmentOfTheMonthDetailsResponse();
+                        departmentOfTheMonthDetailsResponse.setDepartment(department);
+                        departmentOfTheMonthDetailsResponse.setNoOfAwards(noOfRewards);
+                        departmentOfTheMonthDetailsResponse.setNoOfEmployees(noOfEmployeeAccociateWithDepartment);
+
+
+                        if(!getListOfRewardWithEmployeeDetails.isEmpty()) {
+                            departmentOfTheMonthDetailsResponse.setRewardsWithEmployeeDetails(getListOfRewardWithEmployeeDetails);
+                        }
+
+                        JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                        jsonobjectFormat.setMessage("Successfully fetch data!!");
+                        jsonobjectFormat.setSuccess(true);
+                        jsonobjectFormat.setData(departmentOfTheMonthDetailsResponse);
+                        ObjectMapper Obj = new ObjectMapper();
+                        String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                        return ResponseEntity.ok().body(customExceptionStr);
+                    } else {
+                        JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                        jsonobjectFormat.setMessage("Not able to find department of the month!!");
+                        jsonobjectFormat.setSuccess(false);
+                        jsonobjectFormat.setData("");
+                        ObjectMapper Obj = new ObjectMapper();
+                        String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                        return ResponseEntity.ok().body(customExceptionStr);
+                    }
+                }
+            }
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Employee not have awards in this month!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }
+    }
+
+
+//    public ResponseEntity<?> getDepartmentPerformance() {
+//        try {
+//            List<Reward> rewardList = rewardRepository.findAll();
+//            rewardList.stream().map(reward -> {
+//                String employeeId = reward.getEmployeeId();
+//                Employees employeDetails = employeesRepository.findByEmployeeId(employeeId);
+//                Long departmentId = employeDetails.getDepartmentId();
+//                Optional<Department> byId = departmentRepositroy.findById(departmentId);
+//                if (byId.isPresent()) {
+//                    Department department = byId.get();
+//                }
+//            })
+//        } catch (Exception e) {
+//
+//        }
+//    }
 
 }

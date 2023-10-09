@@ -29,6 +29,7 @@ public interface RewardRepository extends JpaRepository<Reward, Long> {
 
     //    List<Reward> findByOnWhichDateMonthAndOnWhichDateYear(String month,String year);
     List<Reward> findByOnWhichDateStartingWith(String yyyyMonth);
+    List<Reward> findByEmployeeIdAndOnWhichDateStartingWith(String employeeId,String yyyyMonth);
 
     int countByEmployeeId(String emplId);
 
