@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class RewardService {
@@ -90,6 +89,24 @@ public class RewardService {
 
     public ResponseEntity<?> updateReward(Reward reward) throws JsonProcessingException {
         try {
+            if (reward.isEmployeeOfTheMonth()) {
+                final String alreadyHave = "yyyy/MM";
+                SimpleDateFormat sdf1 = new SimpleDateFormat(alreadyHave);
+                String format1 = sdf1.format(new Date());
+                List<Reward> byMonthAndDate = rewardRepository.findByOnWhichDateStartingWith(format1);
+                if (!byMonthAndDate.isEmpty()) {
+                    List<Reward> collect = byMonthAndDate.stream().filter(reward1 -> reward1.isEmployeeOfTheMonth()).collect(Collectors.toList());
+                    if (!collect.isEmpty()) {
+                        JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                        jsonobjectFormat.setMessage("Already have an employee of the month!!");
+                        jsonobjectFormat.setSuccess(false);
+                        jsonobjectFormat.setData(collect);
+                        ObjectMapper Obj = new ObjectMapper();
+                        String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                        return ResponseEntity.ok().body(customExceptionStr);
+                    }
+                }
+            }
             if (!rewardRepository.existsById(reward.getId())) {
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
                 jsonobjectFormat.setMessage("Reward id is not valid!!");
@@ -444,8 +461,9 @@ public class RewardService {
         }
     }
 
-    public ResponseEntity findBestDepartment() throws JsonProcessingException {//findBestDepartmentOfTheMonth
+    public ResponseEntity getBestDepartmentPerformance() throws JsonProcessingException {
         try {
+
             Object[] highestCountField = rewardRepository.findHighestCountField();
             if (highestCountField == null) {
                 JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
@@ -507,8 +525,8 @@ public class RewardService {
             Set<String> uniqueEmployeeIds = new HashSet<>();
             List<Reward> startingWith = rewardRepository.findByOnWhichDateStartingWith(yyyyMonth);
 
-            GetListOfRewardWithEmployeeDetails employeeDetailsWithReward=new GetListOfRewardWithEmployeeDetails();
-            List<GetListOfRewardWithEmployeeDetails> getListOfRewardWithEmployeeDetails=new ArrayList<>();
+            GetListOfRewardWithEmployeeDetails employeeDetailsWithReward = new GetListOfRewardWithEmployeeDetails();
+            List<GetListOfRewardWithEmployeeDetails> getListOfRewardWithEmployeeDetails = new ArrayList<>();
             if (!startingWith.isEmpty()) {
                 List<GetDetailsOfDepartmentOfTheMonth> collect = startingWith.stream().map(reward -> {
                     String employeeId = reward.getEmployeeId();
@@ -550,13 +568,13 @@ public class RewardService {
                 if (!collect1.isEmpty()) {
                     List<Map<Long, Integer>> collect2 = collect1.stream().filter(longIntegerMap -> !uniqueDepartmentIds.add(longIntegerMap.keySet().iterator().next())).collect(Collectors.toList());
 
-                    Optional<Map.Entry<Long, Integer>> max=null;
-                    if(collect2.isEmpty()) {
+                    Optional<Map.Entry<Long, Integer>> max = null;
+                    if (collect2.isEmpty()) {
 //                        System.out.println("empty");
                         max = collect1.stream()
                                 .flatMap(mapValue -> mapValue.entrySet().stream())
                                 .max(Comparator.comparing(Map.Entry::getValue));
-                    }else{
+                    } else {
 //                        System.out.println("Not empty");
                         max = collect2.stream()
                                 .flatMap(mapValue -> mapValue.entrySet().stream())
@@ -583,7 +601,7 @@ public class RewardService {
                         departmentOfTheMonthDetailsResponse.setNoOfEmployees(noOfEmployeeAccociateWithDepartment);
 
 
-                        if(!getListOfRewardWithEmployeeDetails.isEmpty()) {
+                        if (!getListOfRewardWithEmployeeDetails.isEmpty()) {
                             departmentOfTheMonthDetailsResponse.setRewardsWithEmployeeDetails(getListOfRewardWithEmployeeDetails);
                         }
 
@@ -626,21 +644,116 @@ public class RewardService {
     }
 
 
-//    public ResponseEntity<?> getDepartmentPerformance() {
-//        try {
-//            List<Reward> rewardList = rewardRepository.findAll();
-//            rewardList.stream().map(reward -> {
-//                String employeeId = reward.getEmployeeId();
-//                Employees employeDetails = employeesRepository.findByEmployeeId(employeeId);
-//                Long departmentId = employeDetails.getDepartmentId();
-//                Optional<Department> byId = departmentRepositroy.findById(departmentId);
-//                if (byId.isPresent()) {
-//                    Department department = byId.get();
-//                }
-//            })
-//        } catch (Exception e) {
-//
-//        }
-//    }
+    public ResponseEntity<?> getDepartmentPerformance(String yyyyMonth) throws JsonProcessingException {
+        try {
+            Set<String> uniqueEmployeeIds = new HashSet<>();
+
+            List<Reward> startingWith = rewardRepository.findByOnWhichDateStartingWith(yyyyMonth);
+            if (startingWith.isEmpty()) {
+                JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+                jsonobjectFormat.setMessage("No employee have awards in this month!!");
+                jsonobjectFormat.setSuccess(false);
+                jsonobjectFormat.setData("");
+                ObjectMapper Obj = new ObjectMapper();
+                String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+                return ResponseEntity.ok().body(customExceptionStr);
+            }
+            List<GetDetailsOfDepartmentOfTheMonth> collect = startingWith.stream().map(reward -> {
+                String employeeId = reward.getEmployeeId();
+                GetDetailsOfDepartmentOfTheMonth detailsOfDepartmentOfTheMonth = new GetDetailsOfDepartmentOfTheMonth();
+                if (!uniqueEmployeeIds.contains(employeeId)) {
+                    uniqueEmployeeIds.add(employeeId);
+                    List<Reward> employeeDataOnWhichDate = rewardRepository.findByEmployeeIdAndOnWhichDateStartingWith(employeeId, yyyyMonth);
+                    int noOfAwardByThisEmployee = employeeDataOnWhichDate.size();
+
+                    Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId);
+                    Department department = departmentRepositroy.findById(byEmployeeId.getDepartmentId()).get();
+
+                    detailsOfDepartmentOfTheMonth.setDepartmentId(department.getId());
+                    detailsOfDepartmentOfTheMonth.setEmployeeId(employeeId);
+                    detailsOfDepartmentOfTheMonth.setNoOfAwards(noOfAwardByThisEmployee);
+
+                    return detailsOfDepartmentOfTheMonth;
+                } else {
+                    return null;
+                }
+            }).filter(details -> details != null).collect(Collectors.toList());
+
+            Map<Long, Integer> noOfAwardsWithDepartmentDetails = new HashMap<>();
+            List<Map<Long, Integer>> collect1 = collect.stream().map(getDetailsOfDepartmentOfTheMonth -> {
+                Long departmentId = getDetailsOfDepartmentOfTheMonth.getDepartmentId();
+                Integer noOfAwards = getDetailsOfDepartmentOfTheMonth.getNoOfAwards();
+
+                if (!noOfAwardsWithDepartmentDetails.containsKey(departmentId)) {
+                    noOfAwardsWithDepartmentDetails.put(departmentId, noOfAwards);
+                } else {
+                    Integer integer = noOfAwardsWithDepartmentDetails.get(departmentId);
+                    noOfAwardsWithDepartmentDetails.put(departmentId, integer + noOfAwards);
+                }
+                return noOfAwardsWithDepartmentDetails;
+            }).collect(Collectors.toList());
+
+            Set<Long> uniqueDepartmentIds = new HashSet<>();
+            List<Map<Long, Integer>> collect2 = collect1.stream().filter(longIntegerMap -> uniqueDepartmentIds.add(longIntegerMap.keySet().iterator().next())).collect(Collectors.toList());
+            List<Map.Entry<Long, Integer>> collect4 = collect2.stream().flatMap(longIntegerMap -> longIntegerMap.entrySet().stream()).collect(Collectors.toList());
+
+            List<RewardDetailsWithEmployeeResponse> detailsWithEmployeeResponses = collect4.stream().map(mapStringEntry -> {//List<RewardDetailsWithEmployeeResponse> detailsWithEmployeeResponses =
+                Long departmentId = mapStringEntry.getKey();
+                Integer noOfAwards = mapStringEntry.getValue();
+                Department department = departmentRepositroy.findById(departmentId).orElse(null);
+                if (department == null) {
+                    return null;
+                }
+                RewardDetailsWithEmployeeResponse detailsResponse = new RewardDetailsWithEmployeeResponse();
+                detailsResponse.setDepartment(department);
+                detailsResponse.setNoOfAwards(noOfAwards);
+
+                List<Employees> byDepartmentId = employeesRepository.findByDepartmentId(departmentId);
+                detailsResponse.setNoOfEmployees(byDepartmentId.size());
+
+                List<GetListOfRewardWithEmployeeDetails> getListOfRewardWithEmployeeDetails = byDepartmentId.stream().map(employees -> {//
+                    GetListOfRewardWithEmployeeDetails employeeDetails = new GetListOfRewardWithEmployeeDetails();
+                    String employeeId1 = employees.getEmployeeId();
+                    List<Reward> whichDateStartingWith = rewardRepository.findByEmployeeIdAndOnWhichDateStartingWith(employeeId1, yyyyMonth);
+                    if (!whichDateStartingWith.isEmpty()) {
+                        employeeDetails.setRewardList(whichDateStartingWith);
+                        Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId1);
+                        if (byDepartmentId == null) {
+                            employeeDetails.setEmployees(null);
+                        }
+                        employeeDetails.setEmployees(byEmployeeId);
+                        employeeDetails.setRewardList(whichDateStartingWith);
+                        return employeeDetails;
+                    } else {
+                        return null;
+                    }
+                }).filter(v -> v != null).collect(Collectors.toList());
+                if (!getListOfRewardWithEmployeeDetails.isEmpty()) {
+                    detailsResponse.setRewardsWithEmployeeDetails(getListOfRewardWithEmployeeDetails);
+                }
+
+                return detailsResponse;
+
+            }).sorted(Comparator.comparing(RewardDetailsWithEmployeeResponse::getNoOfAwards).reversed()).collect(Collectors.toList());
+
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Successfully fetch data!!");
+            jsonobjectFormat.setSuccess(true);
+            jsonobjectFormat.setData(detailsWithEmployeeResponses);
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }
+    }
 
 }

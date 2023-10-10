@@ -58,7 +58,7 @@ public class RewardController {
 
     @GetMapping("/getTopPerformanceEmployee")
     public ResponseEntity<?> getTopPerformanceEmployee(
-            @RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth,
+            @RequestParam(name = "date", defaultValue = "currentMonth", required = false) String yyyyMonth,
             @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "10", required = false) Integer size) throws JsonProcessingException {
         try {
@@ -81,7 +81,7 @@ public class RewardController {
     }
 
     @GetMapping("/getEmployeeOfTheMonthDetails")
-    public ResponseEntity<?> getEmployeeOfTheMonthDetail(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
+    public ResponseEntity<?> getEmployeeOfTheMonthDetail(@RequestParam(name = "date", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
         try {
             if (yyyyMonth.isEmpty() || yyyyMonth == null || yyyyMonth.equals("currentMonth")) {
                 final String NEW_FORMAT = "yyyy/MM";
@@ -103,7 +103,7 @@ public class RewardController {
     }
 
     @GetMapping("/getAllAwardsDetails")
-    public ResponseEntity<?> getNoOfAwardsWithDepartmentAndEmployeeDetails(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth,
+    public ResponseEntity<?> getNoOfAwardsWithDepartmentAndEmployeeDetails(@RequestParam(name = "date", defaultValue = "currentMonth", required = false) String yyyyMonth,
                                                                            @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                                                                            @RequestParam(name = "size", defaultValue = "10", required = false) Integer size) throws JsonProcessingException {
         try {
@@ -125,12 +125,29 @@ public class RewardController {
         }
     }
 
-    @GetMapping("/getBestDepartment")
-    public ResponseEntity<?> getBestDepartment(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
-        return rewardService.findBestDepartment();
+    @GetMapping("/getBestDepartmentPerformance")
+    public ResponseEntity<?> getBestDepartmentPerformance(@RequestParam(name = "date", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
+        try {
+            if (yyyyMonth.isEmpty() || yyyyMonth == null || yyyyMonth.equals("currentMonth")) {
+                final String NEW_FORMAT = "yyyy/MM";
+                SimpleDateFormat sdf = new SimpleDateFormat(NEW_FORMAT);
+                String yyyyMonthIs = sdf.format(new Date());
+                return rewardService.getDepartmentPerformance(yyyyMonthIs);
+            }
+            return rewardService.getDepartmentPerformance(yyyyMonth);
+        } catch (Exception e) {
+            JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();
+            jsonobjectFormat.setMessage("Something went wrong!!");
+            jsonobjectFormat.setSuccess(false);
+            jsonobjectFormat.setData("");
+            ObjectMapper Obj = new ObjectMapper();
+            String customExceptionStr = Obj.writerWithDefaultPrettyPrinter().writeValueAsString(jsonobjectFormat);
+            return ResponseEntity.ok().body(customExceptionStr);
+        }
+
     }
     @GetMapping("/getBestDepartmentOfTheMonth")
-    public ResponseEntity<?> getBestDepartmentOfTheMonth(@RequestParam(name = "YYYY/month", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
+    public ResponseEntity<?> getBestDepartmentOfTheMonth(@RequestParam(name = "date", defaultValue = "currentMonth", required = false) String yyyyMonth) throws JsonProcessingException {
         try {
             if (yyyyMonth.isEmpty() || yyyyMonth == null || yyyyMonth.equals("currentMonth")) {
                 final String NEW_FORMAT = "yyyy/MM";
