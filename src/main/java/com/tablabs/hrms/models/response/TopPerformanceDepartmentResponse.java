@@ -8,13 +8,52 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+
 public class TopPerformanceDepartmentResponse {
     private Integer noOfAwards;
     private Department department;
     private Integer noOfEmployees;
     private GetListOfRewardWithEmployeeDetails rewardsWithEmployeeDetails;
+
+    public TopPerformanceDepartmentResponse() {
+    }
+
+    public Integer getNoOfAwards() {
+        return noOfAwards;
+    }
+
+    public void setNoOfAwards(Integer noOfAwards) {
+        this.noOfAwards = noOfAwards;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public Integer getNoOfEmployees() {
+        return noOfEmployees;
+    }
+
+    public void setNoOfEmployees(Integer noOfEmployees) {
+        this.noOfEmployees = noOfEmployees;
+    }
+
+    public GetListOfRewardWithEmployeeDetails getRewardsWithEmployeeDetails() {
+        return rewardsWithEmployeeDetails;
+    }
+
+    public void setRewardsWithEmployeeDetails(GetListOfRewardWithEmployeeDetails rewardsWithEmployeeDetails) {
+        this.rewardsWithEmployeeDetails = rewardsWithEmployeeDetails;
+    }
+
+    public TopPerformanceDepartmentResponse(Integer noOfAwards, Department department, Integer noOfEmployees, GetListOfRewardWithEmployeeDetails rewardsWithEmployeeDetails) {
+        this.noOfAwards = noOfAwards;
+        this.department = department;
+        this.noOfEmployees = noOfEmployees;
+        this.rewardsWithEmployeeDetails = rewardsWithEmployeeDetails;
+    }
 }

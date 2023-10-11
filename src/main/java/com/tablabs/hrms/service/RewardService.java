@@ -580,12 +580,6 @@ public class RewardService {
                                 .flatMap(mapValue -> mapValue.entrySet().stream())
                                 .max(Comparator.comparing(Map.Entry::getValue));
                     }
-//                    try {//check the condition
-//                        System.out.println(collect2);//null
-//                        System.out.println(max.get());
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
 
                     if (max.isPresent()) {
                         Map.Entry<Long, Integer> longIntegerEntry = max.get();
@@ -600,9 +594,27 @@ public class RewardService {
                         departmentOfTheMonthDetailsResponse.setNoOfAwards(noOfRewards);
                         departmentOfTheMonthDetailsResponse.setNoOfEmployees(noOfEmployeeAccociateWithDepartment);
 
+                        List<Employees> byDepartmentId = employeesRepository.findByDepartmentId(getDepartmentOfTheMonthId);
+                        List<GetListOfRewardWithEmployeeDetails> getListOfRewardWithEmployeeDetails1 = byDepartmentId.stream().map(employees -> {//
+                            GetListOfRewardWithEmployeeDetails employeeDetails = new GetListOfRewardWithEmployeeDetails();
+                            String employeeId1 = employees.getEmployeeId();
+                            List<Reward> whichDateStartingWith = rewardRepository.findByEmployeeIdAndOnWhichDateStartingWith(employeeId1, yyyyMonth);
+                            if (!whichDateStartingWith.isEmpty()) {
+                                employeeDetails.setRewardList(whichDateStartingWith);
+                                Employees byEmployeeId = employeesRepository.findByEmployeeId(employeeId1);
+                                if (byDepartmentId == null) {
+                                    employeeDetails.setEmployees(null);
+                                }
+                                employeeDetails.setEmployees(byEmployeeId);
+                                employeeDetails.setRewardList(whichDateStartingWith);
+                                return employeeDetails;
+                            } else {
+                                return null;
+                            }
+                        }).filter(v -> v != null).collect(Collectors.toList());
 
-                        if (!getListOfRewardWithEmployeeDetails.isEmpty()) {
-                            departmentOfTheMonthDetailsResponse.setRewardsWithEmployeeDetails(getListOfRewardWithEmployeeDetails);
+                        if (!getListOfRewardWithEmployeeDetails1.isEmpty()) {
+                            departmentOfTheMonthDetailsResponse.setRewardsWithEmployeeDetails(getListOfRewardWithEmployeeDetails1);
                         }
 
                         JsonObjectFormat jsonobjectFormat = new JsonObjectFormat();

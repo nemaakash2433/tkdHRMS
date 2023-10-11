@@ -9,11 +9,32 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+
 public class GetListOfRewardWithEmployeeDetails {
     private Employees employees;
     private List<Reward> rewardList;
+
+    public Employees getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(Employees employees) {
+        this.employees = employees;
+    }
+
+    public List<Reward> getRewardList() {
+        return rewardList;
+    }
+
+    public void setRewardList(List<Reward> rewardList) {
+        this.rewardList = rewardList;
+    }
+
+    public GetListOfRewardWithEmployeeDetails() {
+    }
+
+    public GetListOfRewardWithEmployeeDetails(Employees employees, List<Reward> rewardList) {
+        this.employees = employees;
+        this.rewardList = rewardList;
+    }
 }
